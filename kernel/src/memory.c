@@ -4,15 +4,19 @@
 #include "asm.h"
 
 extern void memcpy_sse(void* restrict dest, void* restrict src, size_t len);
+extern void memcpy_normal(void* restrict dest, void* restrict src, size_t len);
 
 void memcpy(void* restrict dest, void* restrict src, size_t len)
 {
-    if(get_cpu_info()->features.sse && len > 15)
+    if(!len)
+        return;
+
+    if(get_cpu_info()->features.sse && len > 127)
     {
         return memcpy_sse(dest, src, len);
     }
 
-    asm volatile("rep movsb" :: "S"(src), "D"(dest), "c"(len) : "memory");
+    return memcpy_normal(dest, src, len);
 }
 
 bool memcmp(void* restrict dest, void* restrict src, size_t len)

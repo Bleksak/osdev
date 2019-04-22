@@ -48,6 +48,7 @@ void cpu_init()
     *(unsigned int*)(cpu.cpu_brand_string) = regs.ebx;
     *(unsigned int*)(cpu.cpu_brand_string + 4) = regs.edx;
     *(unsigned int*)(cpu.cpu_brand_string + 8) = regs.ecx;
+    
     cpuid(1);
     cpu.cpu_signature = regs.eax;
     

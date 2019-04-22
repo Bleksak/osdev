@@ -32,13 +32,13 @@ enum ATA_TYPE
 
 struct ATA_Identify
 {
-    struct GeneralConfiguration
+    struct
     {
         unsigned char ATADevice : 1;
         unsigned short useless1 : 12;
         unsigned char IncompleteResponse : 1;
         unsigned char useless2 : 2;
-    };
+    } GeneralConfiguration;
 
     unsigned short useless1;
     unsigned short SpecificConfiguration;
@@ -78,7 +78,7 @@ struct ATA_Identify
         unsigned char Shorts64to70Valid : 1;
     } Valid1;
 
-    unsigned short useless5[5];
+    unsigned short useless6[5];
 
     struct
     {
@@ -98,7 +98,7 @@ struct ATA_Identify
 
     unsigned int AdressableSectors28;
     
-    unsigned short useless6;
+    unsigned short useless7;
 
     struct
     {
@@ -112,7 +112,7 @@ struct ATA_Identify
         unsigned char Mode0Supported : 1;
     } MultiwordDMA;
 
-    unsigned short useless7 : 14;
+    unsigned short useless8 : 14;
     unsigned char PIO3_4Supported : 2;
 
     unsigned short MinimumMultiwordDMATransferCycleTimePerWord;
@@ -139,7 +139,7 @@ struct ATA_Identify
         unsigned char useless5 : 2;
     } Supported2;
 
-    unsigned short useless8[2];
+    unsigned short useless9[2];
     
     struct
     {

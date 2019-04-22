@@ -4,7 +4,7 @@ struct BiosDataArea
 {
     unsigned short COMptr[4];
     unsigned short LPTptr[3];
-    unsigned short EBDAPtr;
+    unsigned short ExtendedBDAPtr;
 
     struct
     {
@@ -144,3 +144,5 @@ struct BiosDataArea
     unsigned char _reserved3[68];
     unsigned char CommunicationsArea[16];
 } __attribute__((packed));
+
+struct BiosDataArea* getBDA();

@@ -9,7 +9,7 @@
 #include "disk/partition.h"
 
 #include "memory.h"
-#include "acpi.h"
+#include "acpi/acpi.h"
 #include "cpu/apic.h"
 #include "multiboot.h"
 
@@ -19,6 +19,8 @@
 #include "mheap.h"
 #include "assert.h"
 #include "pheap.h"
+
+#include "ebda.h"
 
 /*
     ****TODO LIST****
@@ -51,10 +53,14 @@ void kernel_main(struct multiboot_info* mbd)
     gdt_install();
     idt_install();
 
-	cpu_init();	
+	cpu_init();
     paging_init(mbd->mmap_addr, mbd->mmap_length);
 
+    ExtendedBDAInit();
+
     ata_init();
+
+    AcpiInit();
 
     //partition_init();
     
