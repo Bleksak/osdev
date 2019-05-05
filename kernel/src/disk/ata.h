@@ -254,7 +254,7 @@ struct ATA_Identify
         unsigned char SMARTErrorLogging : 1;
     } Supported5;
 
-} __attribute__((packed));
+} PACKED;
 
 struct ATA_Registers
 {

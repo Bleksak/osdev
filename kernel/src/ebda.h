@@ -5,8 +5,8 @@
 struct ExtendedBiosDataArea
 {
     uint8_t ebda_size; // 1-> 1024B, 2 -> 2048B
-} __attribute__((packed));
+} PACKED;
 
-void ExtendedBDAInit();
+void ExtendedBDAInit(const uintptr_t EBDAptr);
 
-struct ExtendedBiosDataArea* getEBDA();
+const struct ExtendedBiosDataArea* getEBDA();

@@ -43,7 +43,7 @@ struct idt_entry
     unsigned char zero;
     unsigned char flags;
     unsigned short base_high;
-} __attribute__((packed));
+} PACKED;
 
 extern void idt_load(unsigned int);
 
@@ -51,7 +51,7 @@ struct idt_pointer
 {
     unsigned short limit;
     unsigned int base;
-} __attribute__((packed));
+} PACKED;
 
 struct idt_entry idt[256];
 struct idt_pointer idt_ptr;

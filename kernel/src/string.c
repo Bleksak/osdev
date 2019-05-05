@@ -19,3 +19,17 @@ void strrev(char* const str)
         str[j--] = tmp;
     }
 }
+
+bool strncmp(char* restrict str1, char* restrict str2, size_t len)
+{
+    for(size_t i = 0; i < len; ++i)
+    {
+        if(str1[i] != str2[i])
+            return false;
+
+        if(str1[i] == 0)
+            return true;
+    }
+
+    return true;
+}

@@ -2,6 +2,8 @@
 
 struct BiosDataArea
 {
+    unsigned char padding[0x400];
+
     unsigned short COMptr[4];
     unsigned short LPTptr[3];
     unsigned short ExtendedBDAPtr;
@@ -48,7 +50,7 @@ struct BiosDataArea
        unsigned char PS2Mouse : 1; // 1 => installed, 0 => none
        unsigned char MathCoprocessor : 1;
        unsigned char BootFloppy : 1;
-    } __attribute__((packed)) Equipment;
+    } PACKED Equipment;
 
     unsigned char InterruptFlag;
     unsigned short MemorySize; // in Kb
@@ -63,7 +65,7 @@ struct BiosDataArea
         unsigned char Control : 1;
         unsigned char LeftShift : 1;
         unsigned char RightShift : 1;
-    } __attribute__((packed)) KeyboardShiftFlags;
+    } PACKED KeyboardShiftFlags;
 
     struct 
     {
@@ -75,7 +77,7 @@ struct BiosDataArea
         unsigned char SysRegKey : 1;
         unsigned char LeftAlt : 1;
         unsigned char RightAlt : 1;
-    } __attribute__((packed)) KeyboardShiftFlags2;
+    } PACKED KeyboardShiftFlags2;
 
     unsigned char AltNumpadWorkArea;
     
@@ -84,7 +86,7 @@ struct BiosDataArea
         unsigned short NextCharPtr;
         unsigned short LastCharPtr;
         unsigned char Buffer[32];
-    } __attribute__((packed)) KeyboardBuffer;
+    } PACKED KeyboardBuffer;
 
     unsigned char unused2[11]; //floppy stuff
 
@@ -106,12 +108,12 @@ struct BiosDataArea
             unsigned char VideoSignal : 1; // enabled/disabled
             unsigned char ColorOperation : 1; // 0 => color, 1 => monochrome
             unsigned char unused2 : 2;
-        } __attribute__((packed)) InternalModeRegister;
+        } PACKED InternalModeRegister;
         
         unsigned char ColorPalette;
         unsigned short AdapterROMOffset;
         unsigned short AdapterROMSegment;
-    } __attribute__((packed)) VideoMode;
+    } PACKED VideoMode;
 
     unsigned char LastInterrupt;
     unsigned int UselessCounter;
@@ -125,7 +127,7 @@ struct BiosDataArea
         unsigned char HardDriveCount;
         unsigned char DriveControlByte;
         unsigned char DriveIOPortOffset;
-    } __attribute__((packed)) Drives;
+    } PACKED Drives;
 
     unsigned char unused3[12];
 
@@ -137,12 +139,14 @@ struct BiosDataArea
         unsigned int FlagPtr; //Segment:Offset
         unsigned int Count;
         unsigned char Flag;
-    } __attribute__((packed)) UserWait;
+    } PACKED UserWait;
 
     unsigned char LANBytes[7];
     unsigned int VideoParameterControlBlockPtr; //Segment:Offset
     unsigned char _reserved3[68];
     unsigned char CommunicationsArea[16];
-} __attribute__((packed));
+} PACKED;
 
-struct BiosDataArea* getBDA();
+const struct BiosDataArea* getBDA();
+
+void BiosDataAreaInit();

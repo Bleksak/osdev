@@ -2,8 +2,10 @@
 #include "panic.h"
 #include "console.h"
 
-#if defined(NDEBUG)
+#ifdef NDEBUG
     #define assert(expr) ((void)0) 
 #else
-    #define assert(expr) ((expr)) ? ((void) 0) : (console_setcolor(VGA_COLOR_RED, VGA_COLOR_BLACK), printf("Assertion failed, file: %s\nin function %s\non line %u\n%s\n", __FILE__, __func__, __LINE__, #expr)); for(;;)
+    #define assert(expr) (void)((expr) || (__assert (__FILE__, __func__, __LINE__, #expr),0))
 #endif // NDEBUG
+
+NORETURN void __assert(const char* file, const char* function, int line, const char* expression);

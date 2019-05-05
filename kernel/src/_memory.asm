@@ -2,11 +2,21 @@ bits 32
 
 global memset
 memset:
-    mov edi, [esp+8]
-    mov al, [esp+12]
-    mov ecx, [esp+16]
+
+    ;push eax
+    ;push edi
+    ;push ecx
+
+    mov edi, [esp + 4] ; 16
+    mov eax, [esp + 8] ; 20
+    mov ecx, [esp + 12] ; 24
     
     rep stosb
+    
+    ;pop ecx
+    ;pop edi
+    ;pop eax
+
     ret
 
 global memcpy_normal
@@ -22,12 +32,17 @@ global memcpy_sse
 memcpy_sse:
 
     push ecx
-    push edx ;dont need to save esi, edi and ebx because gcc already does ## see disasembly of memory.c ##
-    ; actually i may need to edit the assembly by hand
+    push edx
+    push esi
+    push edi
+    push ebx
+    
+    ;maybe dont need to save esi, edi and ebx because gcc already does ## see disasembly of memory.c ##
+    ; actually i may need to edit the memory.c assembly output by hand
 
-    mov esi, [esp + 16]
-    mov edi, [esp + 12]
-    mov ecx, [esp + 20]
+    mov esi, [esp + 28]
+    mov edi, [esp + 24]
+    mov ecx, [esp + 32]
     
     mov ebx, esi
 
@@ -53,6 +68,9 @@ memcpy_sse:
     mov ecx, edx ;copy the rest
     rep movsb
 
+    pop ebx
+    pop edi
+    pop esi
     pop edx
     pop ecx
 

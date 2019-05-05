@@ -19,6 +19,18 @@ void memcpy(void* restrict dest, void* restrict src, size_t len)
     return memcpy_normal(dest, src, len);
 }
 
+/*
+void memset(void* dest, char ch, size_t len)
+{
+    uint8_t* _pDest = (uint8_t*) dest;
+
+    while(len)
+    {
+        _pDest[--len] = ch;
+    }
+}
+*/
+
 bool memcmp(void* restrict dest, void* restrict src, size_t len)
 {
     uint8_t* _dest = (uint8_t*) dest;

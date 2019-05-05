@@ -76,11 +76,11 @@ struct cpuid
         unsigned char f16c : 1;
         unsigned char rdrand :1;
         unsigned char res5;
-    } __attribute__((packed)) features;
+    } PACKED features;
 
     unsigned int maximum_cpuid_input_value_ext;
     unsigned char cpu_brand_string_ext[48];
-} __attribute__((packed));
+} PACKED;
 
 void cpu_init();
 

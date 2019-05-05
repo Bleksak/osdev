@@ -14,6 +14,6 @@ struct mbr_partition
     unsigned short end_cylinder: 10;
     unsigned int partition_start;
     unsigned int partition_size;
-} __attribute__((packed));
+} PACKED;
 
 

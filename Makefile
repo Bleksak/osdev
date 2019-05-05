@@ -6,14 +6,14 @@ OUTFILES := $(INFILES:.c=.o)
 OUTFILES := $(subst .asm,.o,$(OUTFILES))
 OUTFILES := $(subst $(SRC),$(BIN),$(OUTFILES))
 
-LOSETUP1 := 9
+LOSETUP1 := 8
 LOSETUP2 :=	$(shell expr $(LOSETUP1) \+ 1)
 
 DEPS := $(OUTFILES:.o=.d)
 
 CC := i686-elf-gcc
 CC64 := x86_64-elf-gcc
-CCFLAGS := -m32 -nostdlib -std=c11 -ffreestanding -Wall -Wextra -Ofast -D _KERNEL_CPU_32
+CCFLAGS := -m32 -nostdlib -std=c11 -ffreestanding -Wall -Wextra -O3 -D _KERNEL_CPU_32 -include "attributes.h"
 
 AS := nasm
 ASFLAGS := -f elf32
@@ -62,7 +62,7 @@ grub: $(KERNEL)
 
 
 run: kernel.iso
-	qemu-system-x86_64 -smp 4 -drive format=raw,file=kernel.iso -m 4G
+	qemu-system-x86_64 -smp 4 -drive format=raw,file=kernel.iso -m 2G
 
 clean:
 	-rm $(BIN)/*.o

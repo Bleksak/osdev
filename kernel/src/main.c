@@ -17,7 +17,6 @@
 
 #include "isr.h"
 #include "mheap.h"
-#include "assert.h"
 #include "pheap.h"
 
 #include "ebda.h"
@@ -48,7 +47,7 @@ Kernel panic
 
 */
 
-void kernel_main(struct multiboot_info* mbd)
+NORETURN void kernel_main(struct multiboot_info* mbd)
 {
     gdt_install();
     idt_install();
@@ -56,15 +55,21 @@ void kernel_main(struct multiboot_info* mbd)
 	cpu_init();
     paging_init(mbd->mmap_addr, mbd->mmap_length);
 
-    ExtendedBDAInit();
+    BiosDataAreaInit();
 
-    ata_init();
+    //ata_init();
 
-    AcpiInit();
+    if(AcpiInit())
+    {
+        printf("cool");
+    }
+    else
+    {
+        printf("not cool");
+    }
+    
 
     //partition_init();
-    
-	//init_acpi();
     
     for(;;)
     {

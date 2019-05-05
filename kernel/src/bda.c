@@ -1,14 +1,20 @@
 #include "bda.h"
+#include "ebda.h"
 #include "paging.h"
 
-struct BiosDataArea* BDA = (struct BiosDataArea*)0x400;
+#include "console.h"
 
-void InitBiosDataArea()
+#define BDA_OFFSET 0
+
+const struct BiosDataArea* BDA = (struct BiosDataArea*) (VIRTUAL_MEMORY_START + BDA_OFFSET);
+
+void BiosDataAreaInit()
 {
-    
+    map_page(0, VIRTUAL_MEMORY_START, Present);
+    ExtendedBDAInit(BDA->ExtendedBDAPtr * 0x10);
 }
 
-struct BiosDataArea* getBDA()
+const struct BiosDataArea* getBDA()
 {
     return BDA;
 }

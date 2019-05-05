@@ -1,6 +1,6 @@
 #include "bound.h"
 
-__attribute__((pure)) bool bound(uintptr_t start, uintptr_t end, uintptr_t start_addr, uintptr_t end_addr)
+bool bound(uintptr_t start, uintptr_t end, uintptr_t start_addr, uintptr_t end_addr)
 {
     if(start < start_addr)
     {
@@ -16,7 +16,7 @@ __attribute__((pure)) bool bound(uintptr_t start, uintptr_t end, uintptr_t start
     return true;
 }
 
-__attribute__((pure)) bool bound_s(uintptr_t start, uintptr_t end, uintptr_t addr)
+bool bound_s(uintptr_t start, uintptr_t end, uintptr_t addr)
 {   
     if(start < addr)
     {

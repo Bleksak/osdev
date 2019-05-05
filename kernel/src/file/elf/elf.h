@@ -69,7 +69,7 @@ struct elf_header32
     uint16_t section_header_table_size;
     uint16_t section_header_table_count;
     uint16_t section_names_index;
-} __attribute__((packed));
+} PACKED;
 
 struct elf_program_header
 {
@@ -81,7 +81,7 @@ struct elf_program_header
     uint32_t memory_size;
     uint32_t flags;
     uint32_t alignment;    
-} __attribute__((packed));
+} PACKED;
 
 struct elf_section_header
 {
@@ -95,5 +95,4 @@ struct elf_section_header
     uint32_t sh_info;
     uint32_t sh_addralign;
     uint32_t sh_entsize;
-} __attribute__ ((packed));
-
+} PACKED;
