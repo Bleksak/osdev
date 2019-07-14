@@ -26,10 +26,11 @@ enum ATA_REGISTERS
 	ATA_COMMAND_REGISTER = 7,
 };
 
-struct Drive drives[4] = 
+struct Drive drives[4] =
 {
 	{
 		0,
+		0,
 		true,
 		{
 			ATA_PRIMARY_IO_BASE + ATA_DATA_REGISTER,
@@ -46,14 +47,10 @@ struct Drive drives[4] =
 			ATA_PRIMARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
 			ATA_PRIMARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
 		},
-		
-		0,
-		
-		{
-
-		},
+		{}, {0}
 	},
 	{
+		1,
 		0,
 		false,
 		{
@@ -71,14 +68,10 @@ struct Drive drives[4] =
 			ATA_PRIMARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
 			ATA_PRIMARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
 		},
-		
-		0,
-		
-		{
-
-		},
+		{}, {0}
 	},
 	{
+		2,
 		0,
 		true,
 		{
@@ -96,14 +89,10 @@ struct Drive drives[4] =
 			ATA_SECONDARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
 			ATA_SECONDARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
 		},
-		
-		0,
-		
-		{
-
-		},
+		{}, {0}
 	},
 	{
+		3,
 		0,
 		false,
 		{
@@ -121,12 +110,7 @@ struct Drive drives[4] =
 			ATA_SECONDARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
 			ATA_SECONDARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
 		},
-		
-		0,
-		
-		{
-
-		},
+		{}, {0}
 	}
 };
 
@@ -139,7 +123,7 @@ enum DeviceControlRegister
 {
 	nIEN = 1 << 1,
 	SRST = 1 << 2,
-	HOB = 1 << 7, //  	Set this to read back the High Order Byte of the last LBA48 value sent to an IO port. 
+	HOB = 1 << 7, //  	Set this to read back the High Order Byte of the last LBA48 value sent to an IO port.
 };
 
 enum DriveAddressRegister
@@ -193,61 +177,153 @@ inline static void clearDeviceControlRegister(unsigned char id, enum DeviceContr
 	outb(drives[id].registers.device_control, inb(drives[id].registers.device_control & ~toggle));
 }
 
-
-static inline void ata_identify(unsigned int id)
+static option_t ata_detect(struct Drive* drive)
 {
-	outb(drives[id].registers.drive, 0xA0 | drives[id].master);
-	outb(drives[id].registers.sector_count, 0);
+	setDeviceControlRegister(drive->id, SRST); // do a software reset
+	inb(drive->registers.device_control);
+	clearDeviceControlRegister(drive->id, SRST);
+	outb(drive->registers.drive, 0xA0 | (drive->slave << 4));
+
+	inb(drive->registers.device_control);
+	inb(drive->registers.device_control);
+	inb(drive->registers.device_control);
+	inb(drive->registers.device_control);
+
+	unsigned int cl = inb(drive->registers.lba_mid);
+	unsigned int ch = inb(drive->registers.lba_high);
+
+	if(cl == 0x14 && ch == 0xEB)
+	{
+		return (option_t)
+		{
+			.ok = true,
+			.result = (any_t)ATA_PATAPI,
+		};
+	}
+	if(cl == 0x69 && ch == 0x96)
+	{
+		return (option_t)
+		{
+			.ok = true,
+			.result = (any_t)ATA_SATAPI,
+		};
+	}
+
+	if(cl == 0)
+	{
+		if(ch == 0)
+		{
+			return (option_t)
+			{
+				.ok = true,
+				.result = (any_t)ATA_PATA,
+			};
+		}
+		if(ch == 0xC3)
+		{
+			return (option_t)
+			{
+				.ok = true,
+				.result = (any_t)ATA_SATA,
+			};
+		}
+	}
+
+	return (option_t)
+	{
+		.ok = false,
+		.result = (any_t)ATA_UNKNOWN,
+	};
+}
+
+static inline bool ata_identify(unsigned int id)
+{
+	outb(drives[id].registers.drive, 0xA0 | (drives[id].slave << 4));
 	outb(drives[id].registers.lba_low, 0);
 	outb(drives[id].registers.lba_mid, 0);
 	outb(drives[id].registers.lba_high, 0);
+	outb(drives[id].registers.sector_count, 0);
+
 	outb(drives[id].registers.command, ATA_IDENTIFY);
-		
+
 	if(!inb(drives[id].registers.status))
 	{
-		drives[id].type = ATA_INVALID;
-		return;
+		drives[id].type = ATA_UNKNOWN;
+		return false;
+	}
+
+	while(inb(drives[id].registers.status) & BSY);
+
+	if(inb(drives[id].registers.lba_mid) || inb(drives[id].registers.lba_high))
+	{
+		drives[id].type = ATA_UNKNOWN;
+		return false;
 	}
 
 	while(true)
-	{	
-		if(!(inb(drives[id].registers.status) & BSY))
+	{
+		unsigned char status = inb(drives[id].registers.status);
+		if(status & ERR)
+		{
+			drives[id].type = ATA_UNKNOWN;
+			return false;
+		}
+
+		if(status & DRQ)
 		{
 			break;
 		}
 	}
 
-	if(inb(drives[id].registers.lba_mid) | inb(drives[id].registers.lba_high))
+	for(unsigned int i = 0; i < 256; ++i)
 	{
-		drives[id].type = ATA_INVALID;
-		return;
+		((unsigned short*)&drives[id].identify)[i] = inw(drives[id].registers.data);
 	}
 
-	while(true)
-	{
-		unsigned char value = inb(drives[id].registers.status);
-		if(value & ERR)
-		{
-			drives[id].type = ATA_INVALID;
-			return;
-		}
-		if(value & DRQ)
-		{
-			break;
-		}
-	}
-
-	/*
-		ready to read
-	*/
-
+	return true;
 }
 
-void ata_init()
+void ata_init(void)
 {
 	for(size_t i = 0; i < 4; ++i)
 	{
 		setDeviceControlRegister(i, nIEN); // disable interrupts
-		ata_identify(i);
+		option_t option;
+		if((option = ata_detect(&drives[i])).ok)
+		{
+			drives[i].type = (int)option.result;
+
+			if(!ata_identify(i))
+			{
+				continue;
+			}
+
+			if(drives[i].identify.Supported2.ExtendedUserAddressableSectors)
+			{
+				if(drives[i].identify.SectorCountExt > 0x0000FFFFFFFFFFFF)
+				{
+					printf("Sector Count exceeded maximum value");
+				}
+				else drives[i].data.ExtSectors = drives[i].identify.SectorCountExt;
+			}
+
+			drives[i].data.LowAddressableSectors = drives[i].identify.SectorCountLow;
+			drives[i].data.HighAddressableSectors = drives[i].identify.SectorCount;
+
+			if(!drives[i].identify.PhysicalLogicalSectorSize.one || drives[i].identify.PhysicalLogicalSectorSize.zero
+				|| !drives[i].identify.PhysicalLogicalSectorSize.MultipleLogicalPerPhysical)
+			{
+				drives[i].data.LogicalSectorSize = 512;
+			}
+			else
+			{
+				drives[i].data.LogicalSectorAlignment = drives[i].identify.LogicalSectorAlignment.offset;
+				drives[i].data.LogicalSectorMultiplier = 1 << drives[i].identify.PhysicalLogicalSectorSize.LogicalSectorsPerPhysical;
+				drives[i].data.LogicalSectorSize = 512 * drives[i].data.LogicalSectorMultiplier;
+			}
+
+			printf("%d\n", drives[i].data.LogicalSectorSize);
+
+		}
 	}
 }

@@ -9,8 +9,8 @@ struct registers
     unsigned int eip, cs, eflags, user_esp, ss;
 };
 
-void irq_install();
+void irq_install(void);
 void irq_install_handler(unsigned int index, void* handle);
 
-void pic_enable();
-void pic_disable();
+void pic_enable(void);
+void pic_disable(void);

@@ -26,10 +26,10 @@ enum PageFlags
     Global = 1 << 8,
 };
 
-PURE uintptr_t getCurrentVirtualMemoryOffset();
+PURE uintptr_t getCurrentVirtualMemoryOffset(void);
 void setCurrentVirtualMemoryOffset(uintptr_t address);
 
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len);
-void map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);
+ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);
 uintptr_t get_physaddr(uintptr_t virtual);
-uintptr_t readCR3();
+uintptr_t readCR3(void);

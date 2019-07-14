@@ -2,6 +2,8 @@
 #include "disk/partition.h"
 #include <stdbool.h>
 
+#include "Option.h"
+
 struct ata_registers
 {
     unsigned short device_control;
@@ -34,11 +36,11 @@ struct ATA_Identify
 {
     struct
     {
-        unsigned char ATADevice : 1;
+        unsigned short ATADevice : 1;
         unsigned short useless1 : 12;
-        unsigned char IncompleteResponse : 1;
-        unsigned char useless2 : 2;
-    } GeneralConfiguration;
+        unsigned short IncompleteResponse : 1;
+        unsigned short useless2 : 2;
+    } PACKED GeneralConfiguration;
 
     unsigned short useless1;
     unsigned short SpecificConfiguration;
@@ -46,71 +48,73 @@ struct ATA_Identify
 
     unsigned char SerialNumber[20];
     
-    unsigned short useless3[2];
+    unsigned short useless3[3];
 
-    unsigned long long FirmwareRevision[8];
+    unsigned short FirmwareRevision[4];
     unsigned char ModelNumber[40];
+
+    unsigned short MaximumTransferPerDRQBlock;
 
     unsigned short TrustedComputerFeatureSet;
     
     struct
     {
-        unsigned char useless1 : 2;
-        unsigned char StandbyTimer : 1;
-        unsigned char useless2 : 1;
-        unsigned char IORDYSupport : 1;
-        unsigned char IORDYDisabled : 1;
-        unsigned char LBASupport : 1;
-        unsigned char DMASupport : 1;
-        unsigned char useless3 : 6;
-        unsigned char LongPhysicalSectorAlignmentError :1;
+        unsigned short useless1 : 2;
+        unsigned short StandbyTimer : 1;
+        unsigned short useless2 : 1;
+        unsigned short IORDYSupport : 1;
+        unsigned short IORDYDisabled : 1;
+        unsigned short LBASupport : 1;
+        unsigned short DMASupport : 1;
+        unsigned short useless3 : 6;
+        unsigned short LongPhysicalSectorAlignmentError : 2;
 
         unsigned short useless4 : 15;
-        unsigned char MinimumStandbyValue : 1;
-    } Capabilities1;
+        unsigned short MinimumStandbyValue : 1;
+    } PACKED Capabilities1;
 
-    unsigned short useless5;
+    unsigned short useless5[2];
 
     struct
     {
         unsigned short useless1 : 14;
-        unsigned char UltraDMAValid : 1;
-        unsigned char Shorts64to70Valid : 1;
-    } Valid1;
+        unsigned short UltraDMAValid : 1;
+        unsigned short Shorts64to70Valid : 1;
+    } PACKED Valid1;
 
     unsigned short useless6[5];
 
     struct
     {
-        unsigned char BLOCK_ERASE_EXT : 1;
-        unsigned char OVERWRITE_EXT : 1;
-        unsigned char CRYPTO_SCRAMBLE_EXT : 1;
+        unsigned short BLOCK_ERASE_EXT : 1;
+        unsigned short OVERWRITE_EXT : 1;
+        unsigned short CRYPTO_SCRAMBLE_EXT : 1;
 
-        unsigned char SanitizeFeatureSet : 1;
-        unsigned char SanitizeStandardized : 1;
+        unsigned short SanitizeFeatureSet : 1;
+        unsigned short SanitizeStandardized : 1;
 
-        unsigned char SANITIZE_ANTIFREEZE_LOCK_EXT : 1;
-        unsigned char useless1 : 1;
+        unsigned short SANITIZE_ANTIFREEZE_LOCK_EXT : 1;
+        unsigned short useless1 : 1;
         
-        unsigned char MultipleLogicalSectorSettingValid : 1;
-        unsigned char SectorsPerDRQSetting;
-    } Supported1;
+        unsigned short MultipleLogicalSectorSettingValid : 1;
+        unsigned short SectorsPerDRQSetting : 8;
+    } PACKED Supported1;
 
-    unsigned int AdressableSectors28;
+    unsigned int SectorCountLow;
     
     unsigned short useless7;
 
     struct
     {
-        unsigned char useless1 : 5;
-        unsigned char Mode2Selected : 1;
-        unsigned char Mode1Selected : 1;
-        unsigned char Mode0Selected : 1;
-        unsigned char useless2 : 5;
-        unsigned char Mode2Supported : 1;
-        unsigned char Mode1Supported : 1;
-        unsigned char Mode0Supported : 1;
-    } MultiwordDMA;
+        unsigned short useless1 : 5;
+        unsigned short Mode2Selected : 1;
+        unsigned short Mode1Selected : 1;
+        unsigned short Mode0Selected : 1;
+        unsigned short useless2 : 5;
+        unsigned short Mode2Supported : 1;
+        unsigned short Mode1Supported : 1;
+        unsigned short Mode0Supported : 1;
+    } PACKED MultiwordDMA;
 
     unsigned short useless8 : 14;
     unsigned char PIO3_4Supported : 2;
@@ -122,138 +126,275 @@ struct ATA_Identify
 
     struct
     {
-        unsigned char useless1 : 1;
-        unsigned char DeterministicDataInTrimmedLBA : 1;
-        unsigned char LongPhysSectorAlignmentErrorReportControl : 1;
-        unsigned char useless2 : 1;
-        unsigned char READ_BUFFER_DMA : 1;
-        unsigned char WRITE_BUFFER_DMA : 1;
-        unsigned char useless3 : 1;
-        unsigned char DOWNLOAD_MICROCODE_DMA : 1;
-        unsigned char useless4 : 1;
-        unsigned char OptionalATADevice28bitCommands :1;
-        unsigned char TrimmedLBARangeReturnZeroedData : 1;
-        unsigned char DeviceEncryption : 1;
-        unsigned char ExtendedUserAddressableSectors;
-        unsigned char WriteCacheNonVolatile;
-        unsigned char useless5 : 2;
-    } Supported2;
+        unsigned short reservedForCFA : 1;
+        unsigned short DeterministicDataInTrimmedLBA : 1;
+        unsigned short LongPhysSectorAlignmentErrorReportControl : 1;
+        unsigned short useless2 : 1;
+        unsigned short READ_BUFFER_DMA : 1;
+        unsigned short WRITE_BUFFER_DMA : 1;
+        unsigned short useless3 : 1;
+        unsigned short DOWNLOAD_MICROCODE_DMA : 1;
+        unsigned short useless4 : 1;
+        unsigned short OptionalATADevice28bitCommands : 1;
+        unsigned short TrimmedLBARangeReturnZeroedData : 1;
+        unsigned short DeviceEncryption : 1;
+        unsigned short ExtendedUserAddressableSectors : 1;
+        unsigned short WriteCacheNonVolatile : 1;
+        unsigned short useless5 : 2;
+    } PACKED Supported2;
 
-    unsigned short useless9[2];
+    unsigned short useless9[5];
     
     struct
     {
         unsigned short useless : 11;
-        unsigned char MaxQueueDepth : 4; // minus 1
-    } QueueDepth;
+        unsigned short MaxQueueDepth : 5; // minus 1
+    } PACKED QueueDepth;
 
     struct 
     {
-        unsigned char READ_LOG_DMA_EXT : 1; // if is equal to READ_LOG_EXT
-        unsigned char DeviceAutomaticPartialToSlumberTransition : 1;
-        unsigned char HostAutomaticPartialToSlumberTransition : 1;
-        unsigned char NCQPriorityInformation : 1;
-        unsigned char UnloadWhileNCQOutsanding : 1;
-        unsigned char PhyEventCountersLog : 1;
-        unsigned char HostInitiatedPowerManagementRequests : 1;
-        unsigned char NCQFeatureSet : 1;
-        unsigned char useless1 : 4;
-        unsigned char SATAGen3Speed : 1; // 6.0Gb/s
-        unsigned char SATAGen2Speed : 1; // 3.0Gb/s
-        unsigned char SATAGen1Speed : 1; // 1.5Gb/s
-        unsigned char zero : 1;
-    } SATA_Capabilities1;
+        unsigned short READ_LOG_DMA_EXT : 1; // if is equal to READ_LOG_EXT
+        unsigned short DeviceAutomaticPartialToSlumberTransition : 1;
+        unsigned short HostAutomaticPartialToSlumberTransition : 1;
+        unsigned short NCQPriorityInformation : 1;
+        unsigned short UnloadWhileNCQOutsanding : 1;
+        unsigned short PhyEventCountersLog : 1;
+        unsigned short HostInitiatedPowerManagementRequests : 1;
+        unsigned short NCQFeatureSet : 1;
+        unsigned short useless1 : 4;
+        unsigned short SATAGen3Speed : 1; // 6.0Gb/s
+        unsigned short SATAGen2Speed : 1; // 3.0Gb/s
+        unsigned short SATAGen1Speed : 1; // 1.5Gb/s
+        unsigned short zero : 1;
+    } PACKED SATA_Capabilities1;
 
     struct 
     {
         unsigned short useless1 : 9;
-        unsigned char RECEIVE_SEND_FPDMA_QUEUED : 1;
-        unsigned char NCQueueManagementCommand : 1;
-        unsigned char NCQStreaming : 1;
-        unsigned char CurrentNegotiatedSATASpeed : 3;
-        unsigned char zero : 1;
-    } SATA_Capabilities2;
+        unsigned short RECEIVE_SEND_FPDMA_QUEUED : 1;
+        unsigned short NCQueueManagementCommand : 1;
+        unsigned short NCQStreaming : 1;
+        unsigned short CurrentNegotiatedSATASpeed : 3;
+        unsigned short zero : 1;
+    } PACKED SATA_Capabilities2;
 
     struct
     {
-        unsigned char useless1;
-        unsigned char NCQAutosense : 1;
-        unsigned char SoftwareSettingsPreservation : 1;
-        unsigned char HardwareFeatureControl :1;
-        unsigned char InOrderDataDelivery : 1;
-        unsigned char InitiatingPowerManagement : 1;
-        unsigned char DMASetupAutoActivation : 1;
-        unsigned char NonZeroBufferOffsets : 1;
-        unsigned char zero;
-    } SATA_Features;
+        unsigned short useless1 : 8;
+        unsigned short NCQAutosense : 1;
+        unsigned short SoftwareSettingsPreservation : 1;
+        unsigned short HardwareFeatureControl :1;
+        unsigned short InOrderDataDelivery : 1;
+        unsigned short InitiatingPowerManagement : 1;
+        unsigned short DMASetupAutoActivation : 1;
+        unsigned short NonZeroBufferOffsets : 1;
+        unsigned short zero : 1;
+    } PACKED SATA_Features;
 
     struct 
     {
-        unsigned char useless1;
-        unsigned char AutomaticPartialToSlumberTransition : 1;
-        unsigned char SoftwareSettingsPreservation : 1;
-        unsigned char HardwareFeatureControl : 1;
-        unsigned char InOrderDataDelivery : 1;
-        unsigned char InitiatedPowerManagement : 1;
-        unsigned char DMASetupAutoActivation : 1;
-        unsigned char NonZeroBufferOffsets : 1;
-        unsigned char zero : 1;
-    } SATA_Features_Enabled;
+        unsigned short useless : 8;
+        unsigned short AutomaticPartialToSlumberTransition : 1;
+        unsigned short SoftwareSettingsPreservation : 1;
+        unsigned short HardwareFeatureControl : 1;
+        unsigned short InOrderDataDelivery : 1;
+        unsigned short InitiatedPowerManagement : 1;
+        unsigned short DMASetupAutoActivation : 1;
+        unsigned short NonZeroBufferOffsets : 1;
+        unsigned short zero : 1;
+    } PACKED SATA_Features_Enabled;
 
     unsigned short MajorVersionNumber;
     unsigned short MinorVersionNumber;
 
     struct
     {
-        unsigned char useless1 : 1;
-        unsigned char NOP : 1;
-        unsigned char READ_BUFFER : 1;
-        unsigned char WRITE_BUFFER : 1;
-        unsigned char useless2 : 2;
-        unsigned char zero1 : 1;
-        unsigned char useless3 : 2;
-        unsigned char ReadLookAhead : 1;
-        unsigned char VolatileWriteCache : 1;
-        unsigned char zero2 : 1;
-        unsigned char one : 1;
-        unsigned char useless4 : 1;
-        unsigned char SecurityFeatureSet : 1;
-        unsigned char SMARTFeatureSet : 1;
-    } Supported3;
+        unsigned short useless1 : 1;
+        unsigned short NOP : 1;
+        unsigned short READ_BUFFER : 1;
+        unsigned short WRITE_BUFFER : 1;
+        unsigned short useless2 : 2;
+        unsigned short zero1 : 1;
+        unsigned short useless3 : 2;
+        unsigned short ReadLookAhead : 1;
+        unsigned short VolatileWriteCache : 1;
+        unsigned short zero2 : 1;
+        unsigned short one : 1;
+        unsigned short useless4 : 1;
+        unsigned short SecurityFeatureSet : 1;
+        unsigned short SMARTFeatureSet : 1;
+    } PACKED Supported3;
 
     struct 
     {
-        unsigned char zero : 1;
-        unsigned char one : 1;
-        unsigned char FLUSH_CACHE_EXT : 1;
-        unsigned char FLUSH_CACHE : 1;
-        unsigned char useless1 : 1;
-        unsigned char AdressFeatureSet48 : 1;
-        unsigned char useless2 : 3;
-        unsigned char SET_FEATURES_required : 1;
-        unsigned char PUIS : 1;
-        unsigned char useless3 : 1;
-        unsigned char APMFeatureSet : 1;
-        unsigned char useless4 : 2;
-        unsigned char DOWNLOAD_MICROCODE : 1;
-    } Supported4;
+        unsigned short zero : 1;
+        unsigned short one : 1;
+        unsigned short FLUSH_CACHE_EXT : 1;
+        unsigned short FLUSH_CACHE : 1;
+        unsigned short useless1 : 1;
+        unsigned short AdressFeatureSet48 : 1;
+        unsigned short useless2 : 3;
+        unsigned short SET_FEATURES_required : 1;
+        unsigned short PUIS : 1;
+        unsigned short useless3 : 1;
+        unsigned short APMFeatureSet : 1;
+        unsigned short useless4 : 2;
+        unsigned short DOWNLOAD_MICROCODE : 1;
+    } PACKED Supported4;
 
     struct 
     {
-        unsigned char zero : 1;
-        unsigned char one : 1;
-        unsigned IDLE_IMMIEDIATE_UNLOAD : 1;
-        unsigned char useless1 : 4;
-        unsigned char WorldWideName : 1;
-        unsigned char useless2 : 1;
-        unsigned char WRITE_DMA_FUA_EXT : 1; // WRITE_MULTIPLE_FUA_EXT
-        unsigned char GPL_FeatureSet : 1;
-        unsigned char StreamingFeatureSet : 1;
-        unsigned char useless3 : 2;
-        unsigned char SMARTSelfTest : 1;
-        unsigned char SMARTErrorLogging : 1;
-    } Supported5;
+        unsigned short zero : 1;
+        unsigned short one : 1;
+        unsigned short IDLE_IMMIEDIATE_UNLOAD : 1;
+        unsigned short useless1 : 4;
+        unsigned short WorldWideName : 1;
+        unsigned short useless2 : 1;
+        unsigned short WRITE_DMA_FUA_EXT : 1; // WRITE_MULTIPLE_FUA_EXT
+        unsigned short GPL_FeatureSet : 1;
+        unsigned short StreamingFeatureSet : 1;
+        unsigned short useless3 : 2;
+        unsigned short SMARTSelfTest : 1;
+        unsigned short SMARTErrorLogging : 1;
+    } PACKED Supported5;
 
+    struct 
+    {
+        unsigned short useless : 1;
+        unsigned short nop : 1;
+        unsigned short READ_BUFFER : 1;
+        unsigned short WRITE_BUFFER : 1;
+        unsigned short useless2 : 2;
+        unsigned short zero : 1;
+        unsigned short useless3 : 2;
+        unsigned short read_lookahead : 1;
+        unsigned short volatile_write_cache : 1;
+        unsigned short zero2 : 1;
+        unsigned short one : 1;
+        unsigned short useless4 : 1;
+        unsigned short security : 1;
+        unsigned short smart : 1;
+    } PACKED Supported6;
+
+   struct
+   {
+        unsigned short Words119_120Valid : 1;
+        unsigned short useless : 1;
+        unsigned short FLUSH_CACHE_EXT : 1;
+        unsigned short FLUSH_CACHE : 1;
+        unsigned short useless2 : 1;
+        unsigned short Features48bit : 1;
+        unsigned short useless3 : 3;
+        unsigned short SET_FEATURES_REQUIRED : 1;
+        unsigned short PUIS : 1;
+        unsigned short useless4 : 1;
+        unsigned short APM : 1;
+        unsigned short CFA_reserved : 1;
+        unsigned short useless5 : 1;
+        unsigned short DOWNLOAD_MICROCODE : 1;
+   } PACKED Supported7;
+
+   struct
+   {
+       unsigned short zero : 1;
+       unsigned short one : 1;
+       unsigned short IDLE_IMMEDIATE : 1;
+       unsigned short useless : 4;
+       unsigned short one1 : 1;
+       unsigned short useless2 : 1;
+       unsigned short WRITE_DMA_FUA_EXT : 1;
+       unsigned short GPL_feature_set : 1;
+       unsigned short useless3 : 2;
+       unsigned short MediaSerialNumberValid : 1;
+       unsigned short SMART_SelfTest : 1;
+       unsigned short SMART_ErrorLog : 1;
+   } PACKED Supported8;
+
+    struct 
+    {
+        unsigned short reserved : 1;
+        unsigned short mode6_selected : 1;
+        unsigned short mode5_selected : 1;
+        unsigned short mode4_selected : 1;
+        unsigned short mode3_selected : 1;
+        unsigned short mode2_selected : 1;
+        unsigned short mode1_selected : 1;
+        unsigned short mode0_selected : 1;
+        unsigned short _reserved : 1;
+        unsigned short mode6_supported : 1;
+        unsigned short mode5_supported : 1;
+        unsigned short mode4_supported : 1;
+        unsigned short mode3_supported : 1;
+        unsigned short mode2_supported : 1;
+        unsigned short mode1_supported : 1;
+        unsigned short mode0_supported : 1;
+    } PACKED UltraDMAModes;
+
+    unsigned int ExtendedTime;
+    unsigned char reserved2115;
+    unsigned char CurrentAPMValue;
+    unsigned short MasterPasswordIdentifier;
+    unsigned short HardwareResetResults;
+    unsigned short useless3489573495;
+    unsigned short StreamMinimumRequestSize;
+    unsigned short DMAStreamingTransferTime;
+    unsigned short StreamingAccessLatency;
+    unsigned int StreamingPerformanceGranularity;
+    unsigned long long SectorCount;
+    unsigned short PIOStreamingTransferTime;
+    unsigned short DataSetManagementBlocks;
+    struct
+    {
+        unsigned short zero : 1;
+        unsigned short one : 1;
+        unsigned short MultipleLogicalPerPhysical : 1;
+        unsigned short LogicalSectorLongerThan256Words : 1;
+        unsigned short reserved : 8;
+        unsigned short LogicalSectorsPerPhysical : 4;
+    } PACKED PhysicalLogicalSectorSize;
+
+    unsigned short InterSeekDelay;
+    unsigned char WorldWideName[8];
+    unsigned long long reserved23875;
+    unsigned short obsolete2435;
+    unsigned int LogicalSectorSize;
+
+    unsigned int supported_some;
+    unsigned char reserved98345[12];
+    unsigned short obsolete436387;
+    unsigned short SecurityStatus;
+    unsigned short VendorSpecific[31];
+    unsigned short CFAReserved[8];
+    unsigned short DeviceNominalNormFactor;
+    unsigned short DataSetManagementSupport;
+    unsigned long long AdditionalProductIdentifier;
+    unsigned int reserved98435049;
+    unsigned short CurrentMediaSerialNumber[30];
+    unsigned short SCTCommandTransport;
+    unsigned int reserved92835;
+    
+    struct 
+    {
+        unsigned short zero : 1;
+        unsigned short one : 1;
+        unsigned short offset : 14;
+    } PACKED LogicalSectorAlignment;
+
+    unsigned int WriteReadVerifySectorMode3Count;
+    unsigned int WriteReadVerifySectorMode2Count;
+    unsigned short obsolete9348[3];
+    unsigned short NominalMediaRotationRate;
+    unsigned short reserved87346[2];
+    unsigned short WriteReadVerifyFeatureSetCurrentMode;
+    unsigned short reserved983467;
+    unsigned short TransportMajorVersionNumber;
+    unsigned short TransportMinorVersionNumber;
+    unsigned short reserved9347851[6];
+    unsigned long long SectorCountExt;
+    unsigned short DownloadMicrocodeMinimumBlocks;
+    unsigned short DownloadMicrocodeMaximumBlocks;
+    unsigned short reserved8347638457[19];
+    unsigned short IntegrityWord;
 } PACKED;
 
 struct ATA_Registers
@@ -275,15 +416,24 @@ struct ATA_Registers
 
 struct Drive
 {
+    unsigned char id;
 	enum ATA_TYPE type;
-    bool master;
-
+    const bool slave;
+    
     const struct ATA_Registers registers;
-    unsigned long long sector_count;
     struct ATA_Identify identify;
+    struct
+    {
+        unsigned short LogicalSectorMultiplier;
+        unsigned short LogicalSectorAlignment;
+        unsigned int LogicalSectorSize;
+        unsigned int LowAddressableSectors;
+        unsigned long long HighAddressableSectors;
+        unsigned long long ExtSectors;
+    } data;
 };
 
-void ata_init();
+void ata_init(void);
 struct Drive* grab_drive(unsigned char index);
 
 unsigned char ata_read(struct Drive* drive, unsigned long long lba, unsigned short sector_count, unsigned char* buffer);

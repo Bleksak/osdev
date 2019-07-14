@@ -10,7 +10,7 @@
 
 #include "memory.h"
 #include "acpi/acpi.h"
-#include "cpu/apic.h"
+#include "acpi/apic.h"
 #include "multiboot.h"
 
 #include "file/elf/elf.h"
@@ -21,13 +21,18 @@
 
 #include "ebda.h"
 
+#include "tss.h"
+#include "usermode/usermode_entry.h"
+
+extern void test_func();
+
 /*
     ****TODO LIST****
 
 APM
 ACPI
-Local APIC
-Memory allocation
+APIC
+Memory allocation -> partially done
 SATA
 DMA
 Syscall -> only present on some AMD CPUs
@@ -52,22 +57,27 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
     gdt_install();
     idt_install();
 
+    asm volatile("sti");
+
 	cpu_init();
     paging_init(mbd->mmap_addr, mbd->mmap_length);
 
     BiosDataAreaInit();
 
-    //ata_init();
+    ata_init();
 
-    if(AcpiInit())
-    {
-        printf("cool");
-    }
-    else
-    {
-        printf("not cool");
-    }
     
+
+    // if(AcpiInit())
+    // {
+    //     printf("cool");
+    // }
+    // else
+    // {
+    //     printf("not cool");
+    // }
+    
+
 
     //partition_init();
     

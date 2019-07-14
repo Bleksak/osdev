@@ -1,0 +1,7 @@
+.vscode
+*.iso
+*.o
+*.bin
+*.ipch
+*.json
+%@

@@ -3,6 +3,8 @@
 #include "console.h"
 #include "keyboard.h"
 
+#include "tss.h"
+
 extern void idt_set_gate(unsigned int num, unsigned int base, unsigned short sel, unsigned char flags);
 
 extern void irq0();
@@ -58,7 +60,7 @@ static char* exception_messages[32] =
     "",
 };
 
-enum
+enum ISR
 {
     DIVISION_BY_ZERO,
     DEBUG,
@@ -79,26 +81,26 @@ enum
     COPROCESSOR_FAULT,
     ALIGNMENT_CHECK,
     MACHINE_CHECK,
-} ISR;
+};
 
 void isr_handler(struct registers* regs)
 {
     printf("%s\n", exception_messages[regs->interrupt]);
 }
 
-void pic_enable()
+void pic_enable(void)
 {
     outb(0x21, 0x0); // enable all IRQs on PICM
     outb(0xA1, 0x0); // enable all IRQs on PICS
 }
 
-void pic_disable()
+void pic_disable(void)
 {
     outb(0x21, 0xFF); // disable all IRQs on PICM
     outb(0xA1, 0xFF); // disable all IRQs on PICS
 }
 
-void irq_install()
+void irq_install(void)
 {
     outb(0x20, 0x11); // write ICW1 to PICM
     outb(0xA0, 0x11); // write ICW1 to PICS
@@ -114,28 +116,28 @@ void irq_install()
 
     pic_enable();
 
-    idt_set_gate(32, (unsigned int)irq0,  8, 0x8E);
-    idt_set_gate(33, (unsigned int)irq1,  8, 0x8E);
-    idt_set_gate(34, (unsigned int)irq2,  8, 0x8E);
-    idt_set_gate(35, (unsigned int)irq3,  8, 0x8E);
-    idt_set_gate(36, (unsigned int)irq4,  8, 0x8E);
-    idt_set_gate(37, (unsigned int)irq5,  8, 0x8E);
-    idt_set_gate(38, (unsigned int)irq6,  8, 0x8E);
-    idt_set_gate(39, (unsigned int)irq7,  8, 0x8E);
-    idt_set_gate(40, (unsigned int)irq8,  8, 0x8E);
-    idt_set_gate(41, (unsigned int)irq9,  8, 0x8E);
-    idt_set_gate(42, (unsigned int)irq10, 8, 0x8E);
-    idt_set_gate(43, (unsigned int)irq11, 8, 0x8E);
-    idt_set_gate(44, (unsigned int)irq12, 8, 0x8E);
-    idt_set_gate(45, (unsigned int)irq13, 8, 0x8E);
-    idt_set_gate(46, (unsigned int)irq14, 8, 0x8E);
-    idt_set_gate(47, (unsigned int)irq15, 8, 0x8E);
+    idt_set_gate(32, (unsigned int)irq0,  8, 0x8F);
+    idt_set_gate(33, (unsigned int)irq1,  8, 0x8F);
+    idt_set_gate(34, (unsigned int)irq2,  8, 0x8F);
+    idt_set_gate(35, (unsigned int)irq3,  8, 0x8F);
+    idt_set_gate(36, (unsigned int)irq4,  8, 0x8F);
+    idt_set_gate(37, (unsigned int)irq5,  8, 0x8F);
+    idt_set_gate(38, (unsigned int)irq6,  8, 0x8F);
+    idt_set_gate(39, (unsigned int)irq7,  8, 0x8F);
+    idt_set_gate(40, (unsigned int)irq8,  8, 0x8F);
+    idt_set_gate(41, (unsigned int)irq9,  8, 0x8F);
+    idt_set_gate(42, (unsigned int)irq10, 8, 0x8F);
+    idt_set_gate(43, (unsigned int)irq11, 8, 0x8F);
+    idt_set_gate(44, (unsigned int)irq12, 8, 0x8F);
+    idt_set_gate(45, (unsigned int)irq13, 8, 0x8F);
+    idt_set_gate(46, (unsigned int)irq14, 8, 0x8F);
+    idt_set_gate(47, (unsigned int)irq15, 8, 0x8F);
 
     timer_install();
     keyboard_install();
 }
 
-void* irq_handlers[16] =
+void* irq_handlers[16] = 
 {
     0, 0, 0, 0,
     0, 0, 0, 0,
@@ -156,6 +158,9 @@ void irq_remove_handler(unsigned int index)
 void irq_handler(struct registers* regs)
 {
     void (*handle)(struct registers*) = irq_handlers[regs->interrupt - 32];
+
+    if(regs->interrupt != 32)
+        printf("Interrupt  ");
 
     if(handle)
     {

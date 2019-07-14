@@ -1,3 +1,5 @@
+bits 32
+
 global irq0
 global irq1
 global irq2
@@ -33,7 +35,7 @@ irq_common_stub:
     mov eax, esp
     push eax
     call irq_handler
-
+    
     pop eax
     pop gs
     pop fs

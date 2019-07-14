@@ -1,5 +1,4 @@
 #include "cpu/msr.h"
-
 #include "asm.h"
 
 void cpu_get_msr(uint32_t msr, uint32_t* eax, uint32_t* edx)

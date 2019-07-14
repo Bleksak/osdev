@@ -60,7 +60,7 @@ void keyboard_handle(struct registers* regs)
     }
 }
 
-void keyboard_install()
+void keyboard_install(void)
 {
     irq_install_handler(1, keyboard_handle);
 }

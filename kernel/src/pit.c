@@ -25,7 +25,7 @@ void timer_wait(unsigned int seconds)
     while(end>ticks);
 }
 
-void timer_install()
+void timer_install(void)
 {
     irq_install_handler(0, timer_handler);
 }

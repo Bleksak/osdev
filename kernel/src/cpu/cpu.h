@@ -82,6 +82,6 @@ struct cpuid
     unsigned char cpu_brand_string_ext[48];
 } PACKED;
 
-void cpu_init();
+void cpu_init(void);
 
-struct cpuid* get_cpu_info();
+struct cpuid* get_cpu_info(void);

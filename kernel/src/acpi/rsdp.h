@@ -27,4 +27,4 @@ union RSDP
     struct _RsdpV2 v2;
 } PACKED;
 
-union RSDP* RsdpInit();
+union RSDP* RsdpInit(void);

@@ -37,3 +37,13 @@ unsigned int inl(unsigned short port)
     asm volatile( "inl %1, %0" : "=a"(res) : "Nd"(port) );
     return res;
 }
+
+void MmioWrite32(void *p, uint32_t data)
+{
+    *(volatile uint32_t *)(p) = data;
+}
+
+uint32_t MmioRead32(void *p)
+{
+    return *(volatile uint32_t *)(p);
+}

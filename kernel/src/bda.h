@@ -147,6 +147,6 @@ struct BiosDataArea
     unsigned char CommunicationsArea[16];
 } PACKED;
 
-const struct BiosDataArea* getBDA();
+const struct BiosDataArea* getBDA(void);
 
-void BiosDataAreaInit();
+void BiosDataAreaInit(void);

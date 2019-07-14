@@ -1,7 +1,8 @@
 #include "cpu/cpu.h"
-#include "cpu/apic.h"
 #include "console.h"
 #include "memory.h"
+#include "panic.h"
+
 
 #include "asm.h"
 
@@ -28,18 +29,17 @@ static inline void cpuid(unsigned int eax)
     regs.edx = edx;
 }
 
-struct cpuid* get_cpu_info()
+struct cpuid* get_cpu_info(void)
 {
     return &cpu;
 }
 
-void cpu_init()
+void cpu_init(void)
 {
 
     if(!cpuid_available())
     {
-        printf("Error, CPUID unavailable, cannot run OS.");
-        for(;;);
+        panic("Error, CPUID unavailable, cannot run OS.");
     }
 
 
@@ -80,6 +80,5 @@ void cpu_init()
     return;
 
     cpu_old:
-    printf("Your CPU is too old");
-    for(;;);
+    panic("Your CPU is too old");
 }

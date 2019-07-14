@@ -9,4 +9,4 @@ struct ExtendedBiosDataArea
 
 void ExtendedBDAInit(const uintptr_t EBDAptr);
 
-const struct ExtendedBiosDataArea* getEBDA();
+const struct ExtendedBiosDataArea* getEBDA(void);
