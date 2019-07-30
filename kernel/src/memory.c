@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "cpu/cpu.h"
+#include "cpu/cpuid.h"
 
 #include "asm.h"
 
@@ -11,7 +11,7 @@ void memcpy(void* restrict dest, void* restrict src, size_t len)
     if(!len)
         return;
 
-    if(get_cpu_info()->features.sse && len > 127)
+    if(cpu_has_feature(CPUID_FEAT_SSE) && len > 127)
     {
         return memcpy_sse(dest, src, len);
     }

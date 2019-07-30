@@ -5,7 +5,7 @@
 #include "idt.h"
 #include "pit.h"
 #include "io.h"
-#include "cpu/cpu.h"
+#include "cpu/cpuid.h"
 #include "disk/partition.h"
 
 #include "memory.h"
@@ -24,7 +24,7 @@
 #include "tss.h"
 #include "usermode/usermode_entry.h"
 
-extern void test_func();
+#include "assert.h"
 
 /*
     ****TODO LIST****
@@ -52,6 +52,8 @@ Kernel panic
 
 */
 
+#include "pci/pci.h"
+
 NORETURN void kernel_main(struct multiboot_info* mbd)
 {
     gdt_install();
@@ -64,9 +66,21 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
 
     BiosDataAreaInit();
 
-    ata_init();
+    // printf("%x\n", pci_config_read_word(0, 0, 0, 0));
+    // printf("%x\n", pci_get_header_type(0, 0, 0));
 
+    // ata_init();
+
+    // Result read = ata_read(grab_drive(1), 0, 1);
+
+    // if(!read.ok)
+    // {
+    //     printf("NOK %s\n", read.result);
+    // }
+
+    // unsigned short* res = read.result;
     
+    // printf("%x\n", res[255]);
 
     // if(AcpiInit())
     // {
@@ -76,8 +90,6 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
     // {
     //     printf("not cool");
     // }
-    
-
 
     //partition_init();
     
