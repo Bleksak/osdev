@@ -2,7 +2,7 @@
 #include "disk/partition.h"
 #include <stdbool.h>
 
-#include "Option.h"
+#include "Result.h"
 
 struct ata_registers
 {
@@ -426,7 +426,7 @@ struct Drive
     {
         unsigned short LogicalSectorMultiplier;
         unsigned short LogicalSectorAlignment;
-        unsigned int LogicalSectorSize;
+        unsigned int PhysicalSectorSize;
         unsigned int LowAddressableSectors;
         unsigned long long HighAddressableSectors;
         unsigned long long ExtSectors;
@@ -436,5 +436,5 @@ struct Drive
 void ata_init(void);
 struct Drive* grab_drive(unsigned char index);
 
-unsigned char ata_read(struct Drive* drive, unsigned long long lba, unsigned short sector_count, unsigned char* buffer);
-unsigned char ata_write(struct Drive* drive, unsigned long long lba, unsigned short sector_count, unsigned char* buffer);
+Result ata_read(const struct Drive* drive, unsigned long long lba, unsigned short count);
+Result ata_write(const struct Drive* drive, unsigned long long lba, unsigned short count, const unsigned short* buffer);
