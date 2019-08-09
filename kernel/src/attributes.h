@@ -8,3 +8,4 @@
 #define DEPRECATED(msg) __attribute__((deprecated(msg)))
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #define ALWAYS_INLINE __attribute__((always_inline))
+#define INTERRUPT __attribute__((always_inline))

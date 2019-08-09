@@ -40,11 +40,57 @@ enum CR4
     CR4_PKE        = 1 << 22,
 };
 
+enum XCR0
+{
+    XCR0_FPU = 1 << 0,
+    XCR0_XSAVE = 1 << 1,
+    XCR0_AVX = 1 << 2,
+    XCR0_BNDREG = 1 << 3,
+    XCR0_BNDCSR = 1 << 4,
+    XCR0_AVX512_OPMASK = 1 << 5,
+    XCR0_AVX512_ZMM = 1 << 6,
+    XCR0_AVX512_ZMM_HI = 1 << 7,
+    XCR0_PKRU = 1 << 9,
+    XCR0_DAAX = 1 << 10,
+};
+
+enum XSS 
+{
+    XSS_PT = 1 << 8,
+    XSS_HDC = 1 << 13,
+};
+
+enum EFER
+{
+    EFER_SCE = 1 << 0,
+    EFER_LME = 1 << 8,
+    EFER_LMA = 1 << 10,
+    EFER_NXE = 1 << 11,
+    EFER_SVME = 1 << 12,
+    EFER_LMSLE = 1 << 13,
+    EFER_FFXSR = 1 << 14,
+    EFER_TCE = 1 << 15,
+};
+
 unsigned int cr0_get(unsigned int mask);
 void cr0_set(unsigned int mask);
+void cr0_clear(unsigned int mask);
 
 unsigned int cr3_get(void);
 void cr3_set(unsigned int);
 
 unsigned int cr4_get(unsigned int mask);
 void cr4_set(unsigned int mask);
+
+unsigned long long rdmsr(unsigned int ecx);
+void wrmsr(unsigned int ecx, unsigned long long value);
+
+unsigned long long efer_get(unsigned long long mask);
+void efer_set(unsigned long long mask);
+
+unsigned long long xss_get(unsigned long long mask);
+void xss_set(unsigned long long mask);
+
+unsigned long long xcr0_get(unsigned long long mask);
+void xcr0_set(unsigned long long mask);
+void xcr0_clear(unsigned long long mask);

@@ -60,8 +60,7 @@ static char* exception_messages[32] =
     "",
 };
 
-enum ISR
-{
+enum ISR {
     DIVISION_BY_ZERO,
     DEBUG,
     NMI,
@@ -82,6 +81,7 @@ enum ISR
     ALIGNMENT_CHECK,
     MACHINE_CHECK,
 };
+
 
 void isr_handler(struct registers* regs)
 {
@@ -116,24 +116,24 @@ void irq_install(void)
 
     pic_enable();
 
-    idt_set_gate(32, (unsigned int)irq0,  8, 0x8F);
-    idt_set_gate(33, (unsigned int)irq1,  8, 0x8F);
-    idt_set_gate(34, (unsigned int)irq2,  8, 0x8F);
-    idt_set_gate(35, (unsigned int)irq3,  8, 0x8F);
-    idt_set_gate(36, (unsigned int)irq4,  8, 0x8F);
-    idt_set_gate(37, (unsigned int)irq5,  8, 0x8F);
-    idt_set_gate(38, (unsigned int)irq6,  8, 0x8F);
-    idt_set_gate(39, (unsigned int)irq7,  8, 0x8F);
-    idt_set_gate(40, (unsigned int)irq8,  8, 0x8F);
-    idt_set_gate(41, (unsigned int)irq9,  8, 0x8F);
-    idt_set_gate(42, (unsigned int)irq10, 8, 0x8F);
-    idt_set_gate(43, (unsigned int)irq11, 8, 0x8F);
-    idt_set_gate(44, (unsigned int)irq12, 8, 0x8F);
-    idt_set_gate(45, (unsigned int)irq13, 8, 0x8F);
-    idt_set_gate(46, (unsigned int)irq14, 8, 0x8F);
-    idt_set_gate(47, (unsigned int)irq15, 8, 0x8F);
+    idt_set_gate(32, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(33, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(34, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(35, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(36, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(37, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(38, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(39, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(40, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(41, (unsigned int)interrupt_handler,  8, 0x8F);
+    idt_set_gate(42, (unsigned int)interrupt_handler, 8, 0x8F);
+    idt_set_gate(43, (unsigned int)interrupt_handler, 8, 0x8F);
+    idt_set_gate(44, (unsigned int)interrupt_handler, 8, 0x8F);
+    idt_set_gate(45, (unsigned int)interrupt_handler, 8, 0x8F);
+    idt_set_gate(46, (unsigned int)interrupt_handler, 8, 0x8F);
+    idt_set_gate(47, (unsigned int)interrupt_handler, 8, 0x8F);
 
-    timer_install();
+    // timer_install();
     keyboard_install();
 }
 
@@ -158,9 +158,6 @@ void irq_remove_handler(unsigned int index)
 void irq_handler(struct registers* regs)
 {
     void (*handle)(struct registers*) = irq_handlers[regs->interrupt - 32];
-
-    if(regs->interrupt != 32)
-        printf("Interrupt  ");
 
     if(handle)
     {

@@ -24,6 +24,7 @@ enum CONSOLE_COLORS
 void clearscreen();
 void putch(char ch);
 void printf(const char* str, ...);
+void printf_colored(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg, const char* str, ...);
 
 void itoa(unsigned int num, unsigned char base, char* buffer);
 void strrev(char* str);
