@@ -13,11 +13,11 @@ void timer_phase(int hz)
 
 volatile unsigned int ticks = 0;
 
-void timer_handler(struct registers* regs)
-{
-    (void) regs;
-    ++ticks;
-}
+// void timer_handler(struct registers* regs)
+// {
+//     (void) regs;
+//     ++ticks;
+// }
 
 void timer_wait(unsigned int seconds)
 {
@@ -25,7 +25,13 @@ void timer_wait(unsigned int seconds)
     while(end>ticks);
 }
 
-void timer_install(void)
-{
-    irq_install_handler(0, timer_handler);
+// void timer_install(void)
+// {
+//     irq_install_handler(0, interrupt_timer_handler);
+// }
+
+INTERRUPT void interrupt_timer_handler(struct InterruptFrame* frame) {
+    
+    ++ticks;
+    printf("Tick\n");
 }

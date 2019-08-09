@@ -4,7 +4,7 @@
 #include "../console.h"
 #include "../paging.h"
 #include "../mheap.h"
-#include "../cpu/msr.h"
+// #include "../cpu/msr.h"
 #include "../isr.h"
 #include "../panic.h"
 #include "../io.h"

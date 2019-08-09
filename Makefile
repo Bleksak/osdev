@@ -13,7 +13,7 @@ DEPS := $(OUTFILES:.o=.d)
 
 CC := i686-elf-gcc
 CC64 := x86_64-elf-gcc
-CCFLAGS := -m32 -nostdlib -std=c11 -ffreestanding -Wall -Wextra -O0 -D _KERNEL_CPU_32 -include "attributes.h"
+CCFLAGS := -m32 -nostdlib -std=c2x -ffreestanding -Wall -Wextra -O0 -D _KERNEL_CPU_32 -include "attributes.h"
 
 AS := nasm
 ASFLAGS := -f elf32
@@ -62,7 +62,7 @@ grub: $(KERNEL)
 
 
 run: kernel.iso
-	qemu-system-i386 -smp cpus=2,threads=1 -drive format=raw,file=kernel.iso -m 2G
+	qemu-system-x86_64 -smp cpus=2,threads=1 -drive format=raw,file=kernel.iso -m 2G -cpu host --enable-kvm
 
 clean:
 	-rm $(BIN)/*.o

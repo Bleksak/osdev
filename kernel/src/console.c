@@ -85,9 +85,9 @@ void putch(char ch)
     }
 }
 
-void console_setcolor(enum CONSOLE_COLORS text, enum CONSOLE_COLORS bg)
+void console_setcolor(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg)
 {
-    current_color = text | bg << 4;
+    current_color = fg | bg << 4;
 }
 
 static inline void puts(const char* str)
@@ -96,11 +96,8 @@ static inline void puts(const char* str)
         putch(*str++);
 }
 
-void printf(const char* str, ...)
+static void do_printf(const char* str, va_list list)
 {
-    va_list va_list;
-    va_start(va_list, str);
-
     for(unsigned int i = 0; i<strlen((char*)str); ++i)
     {
         char current_char = str[i];
@@ -112,19 +109,19 @@ void printf(const char* str, ...)
             {
                 case 'c':
                 {
-                    putch((char)va_arg(va_list, int));
+                    putch((char)va_arg(list, int));
                 } break;
 
                 case 's':
                 {
-                    puts((const char*)va_arg(va_list, const char*));
+                    puts((const char*)va_arg(list, const char*));
                 } break;
 
                 case 'd':
                 case 'u':
                 {
                     static char buffer[10] = {0};
-                    itoa(va_arg(va_list, int), 10, buffer);
+                    itoa(va_arg(list, int), 10, buffer);
                     puts(buffer);
                 } break;
 
@@ -133,7 +130,7 @@ void printf(const char* str, ...)
                 {
                     static char buffer[16] = {0};
                     puts("0x");
-                    itoa(va_arg(va_list, int), 16, buffer);
+                    itoa(va_arg(list, int), 16, buffer);
                     puts(buffer);
                 } break;
 
@@ -141,7 +138,7 @@ void printf(const char* str, ...)
                 {
                     static char buffer[16] = {0};
                     puts("0x");
-                    itoa((unsigned int)va_arg(va_list, void*), 16, buffer);
+                    itoa((unsigned int)va_arg(list, void*), 16, buffer);
                     puts(buffer);
                 } break;
                 case 'l':
@@ -150,12 +147,12 @@ void printf(const char* str, ...)
                     if(next == 'd' || next == 'u')
                     {
                         static char buffer[24] = {0};
-                        ltoa((unsigned long long)va_arg(va_list, uint64_t), 10, buffer);
+                        ltoa((unsigned long long)va_arg(list, uint64_t), 10, buffer);
                         puts(buffer);
                     } else if (next == 'x')
                     {
                         static char buffer[24] = {0};
-                        ltoa((unsigned long long)va_arg(va_list, uint64_t), 16, buffer);
+                        ltoa((unsigned long long)va_arg(list, uint64_t), 16, buffer);
                         puts("0x");
                         puts(buffer);
                     }
@@ -167,6 +164,22 @@ void printf(const char* str, ...)
         }
         putch(current_char);
     }
+}
 
+void printf_colored(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg, const char* str, ...)
+{
+    console_setcolor(fg, bg);
+    va_list list;
+    va_start(list, str);
+    do_printf(str, list);
+    va_end(list);
+    console_setcolor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+}
+
+void printf(const char* str, ...)
+{
+    va_list va_list;
+    va_start(va_list, str);
+    do_printf(str, va_list);
     va_end(va_list);
 }

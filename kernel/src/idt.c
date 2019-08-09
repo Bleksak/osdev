@@ -1,6 +1,9 @@
 #include "idt.h"
 #include "isr.h"
 
+#include "pit.h"
+#include "console.h"
+
 extern void isr0(void);
 extern void isr1(void);
 extern void isr2(void);
@@ -100,7 +103,7 @@ void idt_install(void)
     idt_set_gate(29, (unsigned int) isr29, 8, 0x8E);
     idt_set_gate(30, (unsigned int) isr30, 8, 0x8E);
     idt_set_gate(31, (unsigned int) isr31, 8, 0x8E);
-
+    
     irq_install();
 
     idt_load((unsigned int)&idt_ptr);

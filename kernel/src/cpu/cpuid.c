@@ -4,12 +4,19 @@
 #include "panic.h"
 #include "asm.h"
 
+#include "cr.h"
+
+#include "ext/fpu.h"
+#include "ext/sse.h"
+#include "ext/xsave.h"
+#include "ext/avx.h"
+
 struct registers
 {
     unsigned int eax, ebx, ecx, edx;
 };
 
-struct cpuid cpu = 
+struct CPUID cpu = 
 {
     .max_cpuid = 1,
 };
@@ -31,14 +38,16 @@ static struct registers cpuid(unsigned int eax)
     };
 }
 
-struct cpuid* get_cpu_info(void)
-{
+struct CPUID* get_cpu_info(void) {
     return &cpu;
 }
 
-bool cpu_has_feature(enum CPUID_FEATURES feature)
-{
-    return cpu.features & feature;
+bool cpu_has_feature(enum CPUID_FEATURES feature) {
+    return (cpu.features & feature) == feature;
+}
+
+bool cpu_has_ext_feature(enum CPUID_EXT_FEATURES feature) {
+    return (cpu.ext_features[feature / 32] & (feature % 32)) == (feature % 32);
 }
 
 void cpu_init(void)
@@ -67,5 +76,10 @@ void cpu_init(void)
 
     fpu_enable();
     sse_enable();
+    
+    xsave_enable();
 
+    avx_enable();
+    avx_512_enable();
 }
+

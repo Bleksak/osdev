@@ -63,8 +63,69 @@ enum CPUID_FEATURES
     CPUID_FEAT_AVX          = 1ULL << 58,
 };
 
-struct cpuid
-{
+enum CPUID_EXT_FEATURES {
+    // EBX:
+    CPUID_EXT_FEAT_FSGSBASE = 0,
+    CPUID_EXT_FEAT_IA32_TSC_ADJUST = 1,
+    CPUID_EXT_FEAT_SGX = 2,
+    CPUID_EXT_FEAT_BMI1 = 3,
+    CPUID_EXT_FEAT_HLE = 4,
+    CPUID_EXT_FEAT_AVX2 = 5,
+    CPUID_EXT_FEAT_SMEP = 7,
+    CPUID_EXT_FEAT_BMI2 = 8,
+    CPUID_EXT_FEAT_ERMS = 9,
+    CPUID_EXT_FEAT_INVPCID = 10,
+    CPUID_EXT_FEAT_RTM = 11,
+    CPUID_EXT_FEAT_PQM = 12,
+    CPUID_EXT_FEAT_FPU_CS_DS_DEPRECATED = 13,
+    CPUID_EXT_FEAT_MPX = 14,
+    CPUID_EXT_FEAT_PQE = 15,
+    CPUID_EXT_FEAT_AVX512F = 16,
+    CPUID_EXT_FEAT_AVX512DQ = 17,
+    CPUID_EXT_FEAT_RDSEED = 18,
+    CPUID_EXT_FEAT_ADX = 19,
+    CPUID_EXT_FEAT_SMAP = 20,
+    CPUID_EXT_FEAT_AVX512IFMA = 21,
+    CPUID_EXT_FEAT_PCOMMIT = 22,
+    CPUID_EXT_FEAT_CLFLUSHOPT = 23,
+    CPUID_EXT_FEAT_CLWB = 24,
+    CPUID_EXT_FEAT_INTEL_PT = 25,
+    CPUID_EXT_FEAT_AVX512PF = 26,
+    CPUID_EXT_FEAT_AVX512ER = 27,
+    CPUID_EXT_FEAT_AVX512CD = 28,
+    CPUID_EXT_FEAT_SHA = 29,
+    CPUID_EXT_FEAT_AVX512BW = 30,
+    CPUID_EXT_FEAT_AVX512VL = 31,
+
+    // EDX:
+
+    CPUID_EXT_FEAT_AVX512_4VNNIW = 34,
+    CPUID_EXT_FEAT_AVX512_4FMAPS = 35,
+    CPUID_EXT_FEAT_PCONFIG = 50,
+    CPUID_EXT_FEAT_SPEC_CTRL = 58,
+    CPUID_EXT_FEAT_IBC = 59,
+    IA32_ARCH_CAPABILITIES_MSR = 61,
+
+    // ECX:
+
+    CPUID_EXT_FEAT_PREFETCHWT1 = 64,
+    CPUID_EXT_FEAT_AVX512VBMI = 65,
+    CPUID_EXT_FEAT_UMIP = 66,
+    CPUID_EXT_FEAT_PKU = 67,
+    CPUID_EXT_FEAT_OSPKE = 68,
+    CPUID_EXT_FEAT_AVX512VBMI2 = 70,
+    CPUID_EXT_FEAT_GFNI = 72,
+    CPUID_EXT_FEAT_VAES = 73,
+    CPUID_EXT_FEAT_VPCLMULQDQ = 74,
+    CPUID_EXT_FEAT_AVX512VNNI = 75,
+    CPUID_EXT_FEAT_AVX512BITALG = 76,
+    CPUID_EXT_FEAT_AVX512VPOPCNTDQ = 78,
+    CPUID_EXT_FEAT_MAWAU = 80,
+    CPUID_EXT_FEAT_RDPID = 81,
+    CPUID_EXT_FEAT_SGX_LC = 89,
+};
+
+struct CPUID {
     unsigned int max_cpuid;
     char cpu_brand_string[12];
     unsigned int cpu_signature;
@@ -73,6 +134,7 @@ struct cpuid
     unsigned char logical_cpu_count; // Hyper-Threading flag
     unsigned char local_apic_id;
     unsigned long long features;
+    unsigned int ext_features[3];
 
     unsigned int maximum_cpuid_input_value_ext;
     unsigned char cpu_brand_string_ext[48];
@@ -80,6 +142,8 @@ struct cpuid
 
 void cpu_init(void);
 
-struct cpuid* get_cpu_info(void);
+struct CPUID* get_cpu_info(void);
+
 
 bool cpu_has_feature(enum CPUID_FEATURES feature);
+bool cpu_has_ext_feature(enum CPUID_EXT_FEATURES feature);

@@ -61,10 +61,10 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
 
     asm volatile("sti");
 
-	cpu_init();
-    paging_init(mbd->mmap_addr, mbd->mmap_length);
+	// cpu_init();
+    // paging_init(mbd->mmap_addr, mbd->mmap_length);
 
-    BiosDataAreaInit();
+    // BiosDataAreaInit();
 
     // printf("%x\n", pci_config_read_word(0, 0, 0, 0));
     // printf("%x\n", pci_get_header_type(0, 0, 0));
