@@ -1,9 +1,0 @@
--m32
--ffreestanding
--nostdlib
--x c
--std=c17
--Wall
--Wextra
--march=i686
--U __i386__
