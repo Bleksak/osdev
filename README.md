@@ -1,6 +1,4 @@
-Compiled with GCC 8.3
+Compiled with GCC 9.2
 
-Compilation instructions: 
-"su
-make -B
-make run"
+# Building
+After running cmake, you should run make grub, make, make run
