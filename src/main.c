@@ -28,7 +28,6 @@
 /*
     ****TODO LIST****
 
-APM
 ACPI
 APIC
 Memory allocation -> partially done
@@ -89,7 +88,7 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
     // {
     //     printf("not cool");
     // }
-    
+
     //partition_init();
     
     for(;;)
