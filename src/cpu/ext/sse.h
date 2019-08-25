@@ -95,3 +95,7 @@ struct FxsaveBuffer {
 void sse_enable(void);
 void fxsave(void* buffer);
 void fxrstor(void* buffer);
+
+uint16_t popcntw(uint16_t x);
+uint32_t popcntl(uint32_t x);
+uint64_t popcntll(uint64_t x);

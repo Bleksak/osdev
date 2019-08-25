@@ -49,6 +49,7 @@ Userspace
 Kernel panic
 
 */
+#include "align.h"
 
 NORETURN void kernel_main(struct multiboot_info* mbd)
 {
@@ -59,7 +60,8 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
 
     (void) mbd;
 
-	// cpu_init();
+	cpu_init();
+
     // paging_init(mbd->mmap_addr, mbd->mmap_length);
 
     // BiosDataAreaInit();

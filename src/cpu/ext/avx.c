@@ -45,5 +45,5 @@ void avx_512_enable(void) {
         }
     }
 
-    printf_colored(VGA_COLOR_RED, VGA_COLOR_BLACK, "Failed");
+    printf_colored(VGA_COLOR_RED, VGA_COLOR_BLACK, "Failed\n");
 }

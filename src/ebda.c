@@ -4,7 +4,6 @@
 #include "assert.h"
 #include "paging.h"
 
-
 const struct ExtendedBiosDataArea* EBDA = 0;
 
 void ExtendedBDAInit(const uintptr_t EBDAptr)

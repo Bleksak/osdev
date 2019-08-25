@@ -5,11 +5,6 @@
 
 #include "cr.h"
 
-#include "ext/fpu.h"
-#include "ext/sse.h"
-#include "ext/xsave.h"
-#include "ext/avx.h"
-
 struct registers
 {
     unsigned int eax, ebx, ecx, edx;
@@ -42,7 +37,7 @@ struct CPUID* get_cpu_info(void) {
 }
 
 bool cpu_has_feature(enum CPUID_FEATURES feature) {
-    return (cpu.features & feature) == feature;
+    return (cpu.features[feature / 32] & (feature % 32)) == (feature % 32);
 }
 
 bool cpu_has_ext_feature(enum CPUID_EXT_FEATURES feature) {
@@ -70,8 +65,8 @@ void cpu_init(void)
     cpu.logical_cpu_count = (features.ebx >> 16) & 0xFF;
     cpu.local_apic_id = (features.ebx >> 24) & 0xFF;
 
-    cpu.features = features.edx;
-    cpu.features |= ((unsigned long long) features.ecx) << 32;
+    cpu.features[0] = features.edx;
+    cpu.features[1] = features.ecx;
 
     fpu_enable();
     sse_enable();

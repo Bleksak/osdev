@@ -58,7 +58,7 @@ void* palloc(size_t count)
 	if(!count || count > 131072) 
 		return 0;
 	
-	size_t current_count = 0, start = 0;	
+	size_t current_count = 0, start = 0;
 	
 	size_t real_start = 0;
 	
