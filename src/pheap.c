@@ -1,65 +1,87 @@
 #include "pheap.h"
-#include "memory.h"
 #include "console.h"
-#include "mheap.h"
 
-extern size_t page_bitmap[32768];
-extern size_t superpage_bitmap[32];
+#define MAX_ALLOC_COUNT 1048576 // 4096 * 
+#define MAX_SUPERPAGE 32
+#define MAX_PAGE 32768
+
+extern size_t page_bitmap[MAX_PAGE];
+extern size_t superpage_bitmap[MAX_SUPERPAGE];
+
+static void* page_to_address(size_t page) {
+	return (void*) (page * 4096);
+}
+
+// static size_t superpage_to_page(size_t superpage) {
+// 	return superpage * 0x8000;
+// }
+
+// static size_t superpage_find_free(size_t start) {
+// 	while(superpage_bitmap[start] == 0xFFFFFFFF) {
+// 		if(++start >= MAX_SUPERPAGE) {
+// 			return MAX_SUPERPAGE;
+// 		}
+// 	}
+	
+// 	return start;
+// }
+
+static size_t page_find_free(size_t count) {
+	// size_t superpage_index = superpage_find_free(0);
+
+	// if(superpage_index == MAX_SUPERPAGE) {
+	// 	return 0;
+	// }
+
+	// size_t page_index = superpage_to_page(superpage_index);
+
+	size_t page_index = 0;
+
+	while(page_bitmap[page_index] == 0xFFFFFFFF) {
+		if((++page_index) % 0x8000 == 0) {
+			// superpage_index = superpage_find_free(superpage_index + 1);
+			// if(superpage_index == MAX_SUPERPAGE) {
+			// 	return 0;
+			// }
+
+			if(page_index == MAX_PAGE) {
+				return 0;
+			}
+		}
+	}
+
+	size_t current_page = page_index;
+	size_t current_count = 0;
+	size_t current_start = 0;
+
+	while(true) {
+		for(size_t i = 0; i < 32; ++i) { // loop through all the bits in the entry
+			if((page_bitmap[current_page] & (1 << i)) == 0) { // need to check if the current bit is 0
+				if(++current_count == count) { // if it is we increment the counter
+					return (page_index << 5) + current_start;
+				}
+			}
+			else { // otherwise we reset and start at current position, because we can't fit "count" bits
+				current_start = i;
+				current_count = 0;
+			}
+		}
+
+		if(++current_page == MAX_PAGE) {
+			return 0;
+		}
+	}
+}
 
 #if 0
 
-size_t contains_mask(size_t value, size_t mask, size_t count)
-{
-	size_t start = 0;
-	
-	while(((value >> start) & mask) != mask)
-	{
-		if(++start > (31 - count))
-		{
-			return 32;
-		}
-	}
-
-	return start;
-}
-
-void* pheap_alloc(size_t count)
-{
-	if(!count)
-		return 0;
-	
-	if(count > 32) // we allocate 32 pages at most now
-		return 0;
-
-	size_t free_page = 0;
-
-	size_t mask = (1 << (count-1)) ^ ~(-(1 << (count-1)));
-	
-	size_t mask_pos;
-	
-	while((mask_pos = contains_mask(~page_bitmap[free_page], mask, count)) > 31)
-	{
-		if(++free_page > 32767)
-		{
-			return 0;	
-		}
-	}
-
-	mask <<= mask_pos;
-	
-	page_bitmap[free_page] |= mask;
-	
-	return (void*) (free_page * 0x20000 + mask_pos * 0x1000);
-}
-#else
-
 void* palloc(size_t count)
 {
-	if(!count || count > 131072) 
+	if(!count || count > MAX_ALLOC_COUNT)
 		return 0;
 	
-	size_t current_count = 0, start = 0;
-	
+	size_t current_count = 0;
+	size_t start = 0;
 	size_t real_start = 0;
 	
 	while(superpage_bitmap[real_start] == 0xFFFFFFFF)
@@ -116,6 +138,33 @@ done:
 
 #endif
 
+void* palloc(size_t count) {
+	// 2
+
+	size_t nr = page_find_free(count); // 32
+	
+	// printf("NR: %u\n", nr);
+
+	if(!nr) {
+		return 0;
+	}
+
+	size_t base_offset = nr % 32; // 0
+	size_t base_page = nr / 32; // 1
+										// 0 < 2
+	for(size_t current_count = 0; current_count < count; ++current_count) {
+		// printf("Bitmap dump PRE: %x\n", page_bitmap[base_page + ((current_count + base_offset) >> 5)]);
+		page_bitmap[base_page + ((current_count + base_offset) >> 5)] |= 1 << ((current_count + base_offset) % 32);
+
+		// printf("Bitmap dump POST: %x\n", page_bitmap[base_page + ((current_count + base_offset) >> 5)]);
+
+		if(page_bitmap[base_page + ((current_count + base_offset) >> 5)] == 0xFFFFFFFF) {
+			// superpage_bitmap[(base_page + current_count >> 5) >> 10]++; WRONG
+		}
+	}
+
+	return page_to_address(nr);
+}
 
 void pfree(void* addr, size_t count)
 {

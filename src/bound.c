@@ -12,7 +12,6 @@ bool bound(uintptr_t start, uintptr_t end, uintptr_t start_addr, uintptr_t end_a
         return (start <= end_addr && end <= end_addr);
     }
 
-    // If we're equal we have nothing to talk about
     return true;
 }
 

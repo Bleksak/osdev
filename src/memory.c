@@ -2,7 +2,8 @@
 #include "cpu/cpuid.h"
 
 extern void memcpy_sse(void* restrict dest, void* restrict src, size_t len);
-extern void memcpy_normal(void* restrict dest, void* restrict src, size_t len);
+extern void memcpy_basic(void* restrict dest, void* restrict src, size_t len);
+extern void memcpy_basic_opt(void* restrict dest, void* restrict src, size_t len);
 
 void memcpy(void* restrict dest, void* restrict src, size_t len)
 {
@@ -14,7 +15,7 @@ void memcpy(void* restrict dest, void* restrict src, size_t len)
         return memcpy_sse(dest, src, len);
     }
 
-    return memcpy_normal(dest, src, len);
+    return memcpy_basic_opt(dest, src, len);
 }
 
 /*

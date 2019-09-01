@@ -33,23 +33,21 @@ APIC
 Memory allocation -> partially done
 SATA
 DMA
-Syscall -> only present on some AMD CPUs
 Filesystems(FAT, NTFS, EXT)
 Executables(ELF, PE)
 PCI
-String manipulation
 Sound
 Networking
 Keyboard
 CLI
 VGA
-Real Time Clock
-VeleX(rendering engine)
 Userspace
-Kernel panic
 
 */
 #include "align.h"
+
+char buffer[64] = {'a', 'b', 'c'};
+char buffer2[64];
 
 NORETURN void kernel_main(struct multiboot_info* mbd)
 {
@@ -62,7 +60,12 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
 
 	cpu_init();
 
-    // paging_init(mbd->mmap_addr, mbd->mmap_length);
+    paging_init(mbd->mmap_addr, mbd->mmap_length);
+
+    //void* addr = palloc(3);
+    //void* addr2 = palloc(7);
+
+    //printf("%p\n%p\n", addr, addr2);
 
     // BiosDataAreaInit();
 

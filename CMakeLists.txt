@@ -10,13 +10,11 @@ link_libraries(-nostdlib -flto "-T ${PROJECT_SOURCE_DIR}/linker.ld" -lgcc)
 
 set(CMAKE_C_LINK_EXECUTABLE "i686-elf-gcc <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
-set(CMAKE_C_COMPILER /home/bleksak/opt/cross32/bin/i686-elf-gcc)
+set(CMAKE_C_COMPILER i686-elf-gcc)
 
-set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -m32 -march=i686")
+set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -march=i686")
 
 # set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-
-#enable_language(c)
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir/boot)
@@ -165,6 +163,7 @@ add_executable(kernel.elf
     src/result.h
     src/string.h
     src/string.c
+
 )
 
 add_custom_command(TARGET kernel.elf

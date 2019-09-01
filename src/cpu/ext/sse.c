@@ -40,7 +40,7 @@ const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
 const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
 const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
 
-uint8_t popcntll_software(uint64_t x)
+static uint8_t popcntll_software(uint64_t x)
 {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
