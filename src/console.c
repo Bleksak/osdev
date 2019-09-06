@@ -1,7 +1,6 @@
 #include "console.h"
-#include <stdint.h>
-#include <stdarg.h>
 #include "string.h"
+#include "std.h"
 
 unsigned int current_x = 0;
 unsigned int current_y = 0;

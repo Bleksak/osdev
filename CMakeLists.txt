@@ -1,20 +1,13 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 2.8)
 project(kernel)
+
+link_libraries(-nostdlib "-T ${PROJECT_SOURCE_DIR}/linker.ld" -lgcc)
 
 set(CMAKE_ASM_NASM_LINK_EXECUTABLE "i686-elf-gcc <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
-
 enable_language(ASM_NASM)
 
-link_libraries(-nostdlib -flto "-T ${PROJECT_SOURCE_DIR}/linker.ld" -lgcc)
-
-set(CMAKE_C_LINK_EXECUTABLE "i686-elf-gcc <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-
-set(CMAKE_C_COMPILER i686-elf-gcc)
-
-set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -march=i686")
-
-# set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir/boot)
@@ -31,7 +24,7 @@ FILE(WRITE ${CMAKE_BINARY_DIR}/isodir/boot/grub/grub.cfg
 
 FILE(WRITE ${CMAKE_BINARY_DIR}/grub.make
 "LOSETUP1 := 9\n"
-"LOSETUP2 := $(shell expr $(LOSETUP1) \+ 1)\n"
+"LOSETUP2 := $(shell expr $(LOSETUP1) \\+ 1)\n"
 
 "all: \n"
     "\tsudo qemu-img create kernel.iso 1G\n"
@@ -69,7 +62,7 @@ add_custom_target(grub
 )
 
 add_custom_target(run
-    qemu-system-x86_64 -smp cpus=2,threads=1 -drive format=raw,file=kernel.iso -m 2G -cpu host --enable-kvm
+    sudo qemu-system-x86_64 -smp cpus=2,threads=1 -drive format=raw,file=kernel.iso -m 2G -cpu host --enable-kvm
 )
 
 add_executable(kernel.elf
@@ -95,7 +88,6 @@ add_executable(kernel.elf
     src/cpu/ext/xsave.c
     src/cpu/ext/xsave.h
 
-    src/cpu/cpuid.asm
     src/cpu/cpuid.c
     src/cpu/cpuid.h
     src/cpu/cr.c
@@ -131,7 +123,6 @@ add_executable(kernel.elf
     src/console.h
     src/ebda.c
     src/ebda.h
-    src/gdt.asm
     src/gdt.c
     src/gdt.h
     src/io.c
@@ -164,6 +155,7 @@ add_executable(kernel.elf
     src/string.h
     src/string.c
 
+    src/std.h
 )
 
 add_custom_command(TARGET kernel.elf

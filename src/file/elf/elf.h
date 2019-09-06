@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include "../../std.h"
 
 typedef unsigned long long elf64_addr_t;
 typedef unsigned long long elf64_offset_t;

@@ -1,0 +1,11 @@
+-D _x86
+-x c
+-Wno-cpp
+-std=c17
+-Wall
+-Wextra
+-ffreestanding
+-nostdlib
+-nostdinc
+-march=i686
+--target=i686-pc-none-elf

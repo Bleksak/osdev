@@ -1,7 +1,5 @@
 #pragma once
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
+#include "../std.h"
 
 struct SDT_Header
 {

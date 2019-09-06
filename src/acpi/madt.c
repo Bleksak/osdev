@@ -15,7 +15,7 @@ bool initMADT(struct MADT_SDT* header)
     if((((uintptr_t)header + header->SDT.Length) & ~0xFFF) != ((uintptr_t)header & ~0xFFF))
     {
         const uintptr_t current_offset = getCurrentVirtualMemoryOffset();
-        map_page(get_physaddr((uintptr_t)header) + 0x1000, current_offset, Present);
+        map_page(get_physical_address((uintptr_t)header) + 0x1000, current_offset, Present);
         setCurrentVirtualMemoryOffset(current_offset + 0x1000);
     }
 

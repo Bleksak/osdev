@@ -1,7 +1,5 @@
 #pragma once
-#include <stdbool.h>
-#include <stdint.h>
-#include "stdlib/stddef.h"
+#include "std.h"
 
 
 void memset(void* restrict dest, uint8_t ch, size_t len);

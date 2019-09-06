@@ -1,9 +1,6 @@
 #pragma once
 
-
-#include <stdint.h>
-#include <stdbool.h>
-#include "stdlib/stddef.h"
+#include "std.h"
 
 #include "attributes.h"
 

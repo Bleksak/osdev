@@ -1,7 +1,5 @@
 #pragma once
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "std.h"
 
 #include "multiboot.h"
 
@@ -28,10 +26,12 @@ enum PageFlags
     Global = 1 << 8,
 };
 
+#define GET_PHYS(addr) get_physical_address(((uintptr_t)addr))
+
 PURE uintptr_t getCurrentVirtualMemoryOffset(void);
 void setCurrentVirtualMemoryOffset(uintptr_t address);
 
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len);
 ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);
-uintptr_t get_physaddr(uintptr_t virtual);
+uintptr_t get_physical_address(uintptr_t virtual);
 uintptr_t readCR3(void);

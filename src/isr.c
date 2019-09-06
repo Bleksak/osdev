@@ -83,7 +83,7 @@ enum ISR {
 
 void isr_handler(struct registers* regs)
 {
-    printf("%s\n", exception_messages[regs->interrupt]);
+    printf("%s\n", exception_messages[regs->interrupt]);    
 }
 
 void pic_enable(void)

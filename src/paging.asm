@@ -10,10 +10,10 @@ load_page_directory: ; arg => uintptr_t (address) of the directory
 global flush_tlb
 extern page_directory
 
-flush_tlb:
-	mov eax, get_phys(page_directory)
-	mov cr3, eax
-	ret
+; flush_tlb:
+; 	mov eax, get_phys(page_directory)
+; 	mov cr3, eax
+; 	ret
 
 global readCR3
 readCR3:

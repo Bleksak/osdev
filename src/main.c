@@ -20,11 +20,6 @@
 
 #include "ebda.h"
 
-
-#include "assert.h"
-
-#include "string.h"
-
 /*
     ****TODO LIST****
 
@@ -56,11 +51,16 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
 
     __asm__ volatile("sti");
 
-    (void) mbd;
-
 	cpu_init();
 
     paging_init(mbd->mmap_addr, mbd->mmap_length);
+
+    // printf("wtf?");
+
+    // printf("%p\n", palloc(3));
+    // printf("%p\n", palloc(3));
+    // printf("%p\n", palloc(3));
+    // printf("%p\n", palloc(3));
 
     //void* addr = palloc(3);
     //void* addr2 = palloc(7);

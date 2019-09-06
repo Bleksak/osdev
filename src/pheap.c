@@ -1,52 +1,63 @@
 #include "pheap.h"
 #include "console.h"
 
+#include "cpu/cpuid.h"
+
 #define MAX_ALLOC_COUNT 1048576 // 4096 * 
 #define MAX_SUPERPAGE 32
 #define MAX_PAGE 32768
+// 32768 pages per 1 superpage
+// 1024 pages  per 1 bit in superpage
 
 extern size_t page_bitmap[MAX_PAGE];
 extern size_t superpage_bitmap[MAX_SUPERPAGE];
 
-static void* page_to_address(size_t page) {
-	return (void*) (page * 4096);
+static void page_mark(size_t page) {
+	page_bitmap[page >> 5] |= 1 << (page & 0x1F);
 }
 
-// static size_t superpage_to_page(size_t superpage) {
-// 	return superpage * 0x8000;
-// }
+void page_unmark(size_t page) {
+	page_bitmap[page >> 5] &= ~(1 << (page & 0x1F));
+}
 
-// static size_t superpage_find_free(size_t start) {
-// 	while(superpage_bitmap[start] == 0xFFFFFFFF) {
-// 		if(++start >= MAX_SUPERPAGE) {
-// 			return MAX_SUPERPAGE;
-// 		}
-// 	}
+static void superpage_mark(size_t page) {
+	superpage_bitmap[page >> 15] |= 1 << (page & 0x3FF);
+}
+
+void superpage_unmark(size_t page) {
+	superpage_bitmap[page >> 15] &= ~(1 << (page & 0x3FF));
+}
+
+static size_t superpage_find_free(size_t start) { // returns page or 0xfffffff
+	while(superpage_bitmap[start] == 0xFFFFFFFF) {
+		if(++start >= MAX_SUPERPAGE) {
+			return 0xFFFFFFFF;
+		}
+	}
+
+	const size_t value = superpage_bitmap[start];
 	
-// 	return start;
-// }
+	size_t bit = 0;
+
+	if(cpu_has_ext_feature(CPUID_EXT_FEAT_BMI1)) {
+		__asm__ volatile("blsi %1, %0" : "=r"(bit) : "r"(value));
+	} else {
+		bit = value & (-value);
+	}
+
+	return (start << 15) + (bit << 10);
+}
 
 static size_t page_find_free(size_t count) {
-	// size_t superpage_index = superpage_find_free(0);
+	size_t page_index = superpage_find_free(0);
 
-	// if(superpage_index == MAX_SUPERPAGE) {
-	// 	return 0;
-	// }
-
-	// size_t page_index = superpage_to_page(superpage_index);
-
-	size_t page_index = 0;
+	if(page_index == 0xFFFFFFFF) {
+		return 0;
+	}
 
 	while(page_bitmap[page_index] == 0xFFFFFFFF) {
-		if((++page_index) % 0x8000 == 0) {
-			// superpage_index = superpage_find_free(superpage_index + 1);
-			// if(superpage_index == MAX_SUPERPAGE) {
-			// 	return 0;
-			// }
-
-			if(page_index == MAX_PAGE) {
-				return 0;
-			}
+		if((++page_index) == MAX_PAGE) {
+			return 0;
 		}
 	}
 
@@ -73,109 +84,34 @@ static size_t page_find_free(size_t count) {
 	}
 }
 
-#if 0
-
-void* palloc(size_t count)
-{
-	if(!count || count > MAX_ALLOC_COUNT)
-		return 0;
-	
-	size_t current_count = 0;
-	size_t start = 0;
-	size_t real_start = 0;
-	
-	while(superpage_bitmap[real_start] == 0xFFFFFFFF)
-	{
-		if(++real_start > 31)
-		{
-			return 0;
-		}
-	}
-
-	real_start *= 32;
-
-	while(page_bitmap[real_start] == 0xFFFFFFFF)
-	{
-		if(++real_start > 32767)
-		{
-			return 0;
-		}
-	}
-	
-	start = real_start * 32;
-
-	for(size_t i = real_start; i < 32768; ++i)
-	{
-		const size_t val = page_bitmap[i];
-
-		for(size_t j = 0; j < 32; ++j)
-		{
-			if(val & (1 << j))
-			{
-				current_count = 0;
-				start = i * 32 + j + 1;
-			}
-			else if(++current_count == count)
-				goto done;
-		}
-	}
-	
-done:
-	if(current_count != count)
-	{
-		return 0;
-	}
-
-	for(size_t i = start; i < (start + count); ++i)
-	{
-		page_bitmap[i/32] |= 1 << (i % 32);
-		if(page_bitmap[i/32] == 0xFFFFFFFF)
-			++superpage_bitmap[i/1024];
-	}
-
-	return (void*) (start * 0x1000);
-}
-
-#endif
-
 void* palloc(size_t count) {
-	// 2
+	size_t page = page_find_free(count);
 
-	size_t nr = page_find_free(count); // 32
-	
-	// printf("NR: %u\n", nr);
-
-	if(!nr) {
+	if(!page) {
 		return 0;
 	}
 
-	size_t base_offset = nr % 32; // 0
-	size_t base_page = nr / 32; // 1
-										// 0 < 2
-	for(size_t current_count = 0; current_count < count; ++current_count) {
-		// printf("Bitmap dump PRE: %x\n", page_bitmap[base_page + ((current_count + base_offset) >> 5)]);
-		page_bitmap[base_page + ((current_count + base_offset) >> 5)] |= 1 << ((current_count + base_offset) % 32);
+	// size_t base_offset = nr % 32; // 0
+	// size_t base_page = nr / 32; // 1
 
-		// printf("Bitmap dump POST: %x\n", page_bitmap[base_page + ((current_count + base_offset) >> 5)]);
-
-		if(page_bitmap[base_page + ((current_count + base_offset) >> 5)] == 0xFFFFFFFF) {
-			// superpage_bitmap[(base_page + current_count >> 5) >> 10]++; WRONG
-		}
+	for(size_t i = page; i < (page + count); ++i) {
+		page_mark(i);
+		superpage_mark(i);
 	}
 
-	return page_to_address(nr);
+	// for(size_t current_count = 0; current_count < count; ++current_count) {
+	// 	page_bitmap[base_page + ((current_count + base_offset) >> 5)] |= 1 << ((current_count + base_offset) % 32);
+	// }
+
+	return (void*) (page << 12);
 }
 
-void pfree(void* addr, size_t count)
-{
-	const size_t start = ((size_t) addr/0x1000);
+void pfree(void* addr, size_t count) {
+	const size_t start = ((size_t) addr >> 12);
 	const size_t end = start + count;
 
-	for(size_t i = start; i < end; ++i)
-	{
-		if(page_bitmap[i/32] == 0xFFFFFFFF)
-			--superpage_bitmap[i/1024];
-
-		page_bitmap[i/32] &= ~(1 << (i % 32));
+	for(size_t i = start; i < end; ++i) {
+		page_unmark(i);
+		superpage_unmark(i);
 	}
 }

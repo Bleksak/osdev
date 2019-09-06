@@ -3,7 +3,7 @@
 #include "align.h"
 #include "memory.h"
 
-#include <stdbool.h>
+#include "std.h"
 
 typedef struct alloc
 {
@@ -242,34 +242,39 @@ static void shrink_to_fit(alloc_t* block, size_t size)
 	free(new+1);
 }
 
-void* calloc(size_t count, size_t size)
-{
+void* calloc(size_t count, size_t size) {
 	void* addr = malloc(count*size);
-	return ((addr) ? memset(addr, 0, count * size) : 0), addr;
+	
+	if(addr) {
+		memset(addr, 0, count * size);
+	}
+
+	return addr;
 }
 
-void* realloc(void* base, size_t new_size)
-{
-	if(!new_size)
+void* realloc(void* base, size_t new_size) {
+	if(!new_size) {
 		return 0;
+	}
 
-	if(!base)
+	if(!base) {
 		return malloc(new_size);
+	}
 
 	alloc_t* block = ((alloc_t*)base - 1);
 
 	new_size = align(new_size + sizeof(alloc_t), sizeof(alloc_t));
 
-	if(block->size == new_size)
-	{
+	if(block->size == new_size) {
 		return base;
 	}
 
-	if(block->size > new_size)
-	{
+	if(block->size > new_size) {
 		shrink_to_fit(block, new_size);
 		return base;
 	}
+
+	
 
 	/*
 		block size is lower than requested, need to reallocate

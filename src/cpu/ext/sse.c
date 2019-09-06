@@ -21,7 +21,7 @@ void sse_enable(void)
     if(cpu_has_feature(CPUID_FEAT_POPCNT)) {
         printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "True\n");
     }
-
+    
     else {
         printf_colored(VGA_COLOR_RED, VGA_COLOR_BLACK, "False\n");
     }

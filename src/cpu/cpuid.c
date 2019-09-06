@@ -5,25 +5,36 @@
 
 #include "cr.h"
 
-struct registers
-{
-    unsigned int eax, ebx, ecx, edx;
-};
-
-struct CPUID cpu = 
-{
+static struct CPUID cpu = {
     .max_cpuid = 1,
 };
 
-extern bool cpuid_available(void);
-extern void enable_sse(void);
+static bool cpuid_available(void) {
+    bool result;
+    __asm__ volatile (
+        "pushfl;"                               //Save EFLAGS
+        "pushfl;"                               //Store EFLAGS
+        "xorl $0x00200000, (%%esp);"           //Invert the ID bit in stored EFLAGS
+        "popfl;"                                //Load stored EFLAGS (with ID bit inverted)
+        "pushfl;"                               //Store EFLAGS again (ID bit may or may not be inverted)
+        "pop %%eax;"                              //eax = modified EFLAGS (ID bit may or may not be inverted)
+        "xorl (%%esp), %%eax;"                        //eax = whichever bits were changed
+        "popfl;"                                //Restore original EFLAGS
+        "and $0x00200000, %%eax;"                   //eax = zero if ID bit can't be changed, else non-zero
+        "shr $21, %%eax;"
+        : "=a" (result)
+        : 
+        : "cc"
+    );
 
-static struct registers cpuid(unsigned int eax)
-{
+    return result;
+}
+
+static Registers cpuid(unsigned int eax) {
     unsigned int ebx, ecx, edx;
     __asm__ volatile("cpuid" : "=b"(ebx), "=c"(ecx), "=d"(edx), "+a"(eax));
 
-    return (struct registers)
+    return (Registers)
     {
         .eax = eax,
         .ebx = ebx,
@@ -44,20 +55,18 @@ bool cpu_has_ext_feature(enum CPUID_EXT_FEATURES feature) {
     return (cpu.ext_features[feature / 32] & (feature % 32)) == (feature % 32);
 }
 
-void cpu_init(void)
-{
-    if(!cpuid_available())
-    {
+void cpu_init(void) {
+    if(!cpuid_available()) {
         panic("Error, CPUID unavailable, cannot run OS.");
     }
 
-    struct registers vendor = cpuid(0);
+    Registers vendor = cpuid(0);
     cpu.max_cpuid = vendor.eax;
     *(unsigned int*)(cpu.cpu_brand_string) = vendor.ebx;
     *(unsigned int*)(cpu.cpu_brand_string + 4) = vendor.edx;
     *(unsigned int*)(cpu.cpu_brand_string + 8) = vendor.ecx;
     
-    struct registers features = cpuid(1);
+    Registers features = cpuid(1);
     cpu.cpu_signature = features.eax;
     
     cpu.brand_index = features.ebx & 0xFF;

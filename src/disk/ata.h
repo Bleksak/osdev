@@ -1,6 +1,6 @@
 #pragma once
 #include "partition.h"
-#include <stdbool.h>
+#include "../std.h"
 
 #include "../result.h"
 

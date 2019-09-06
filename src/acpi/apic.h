@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include "../std.h"
 #include "madt.h"
 
 struct APIC

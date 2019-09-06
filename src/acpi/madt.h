@@ -1,6 +1,5 @@
 #pragma once
-#include <stdbool.h>
-#include <stdint.h>
+#include "../std.h"
 #include "acpi.h"
 #include "../attributes.h"
 

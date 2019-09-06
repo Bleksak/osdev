@@ -1,6 +1,12 @@
 #pragma once
 
-#include <stdbool.h>
+struct Registers {
+    unsigned int eax, ebx, ecx, edx, esi, edi, ebp, esp;
+};
+
+typedef struct Registers Registers;
+
+#include "../std.h"
 #include "../attributes.h"
 
 #include "ext/fpu.h"

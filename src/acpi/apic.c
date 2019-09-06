@@ -1,5 +1,3 @@
-#include "stdint.h"
-
 #include "apic.h"
 #include "../console.h"
 #include "../paging.h"

@@ -3,9 +3,6 @@
 #include "../ebda.h"
 #include "../paging.h"
 
-#include <stddef.h>
-#include <stdint.h>
-
 #define RSD_PTR_ 0x2052545020445352
 
 static union RSDP* RsdpFind(uint8_t* start, uint8_t* end)

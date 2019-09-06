@@ -1,5 +1,5 @@
 #pragma once
-#include <stdbool.h>
+#include "std.h"
 
 #define Result(p, t) (Result) {.ok = p, .result = (any_t)t}
 #define Ok(ptr) Result(true, ptr)
@@ -7,8 +7,7 @@
 
 typedef void* any_t;
 
-struct Result
-{
+struct Result {
     bool ok;
     any_t result;
 };

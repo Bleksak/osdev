@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include "std.h"
 
 #include "attributes.h"
 

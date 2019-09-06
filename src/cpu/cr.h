@@ -1,7 +1,8 @@
 #pragma once
 
-enum CR0
-{
+#include "../std.h"
+
+enum CR0 {
     CR0_PE = 1 << 0,  // Protected mode enable
     CR0_MP = 1 << 1,  // Monitor co-processor
     CR0_EM = 1 << 2,  // Emulation
@@ -15,8 +16,7 @@ enum CR0
     CR0_PG = 1 << 31, // Paging enable
 };
 
-enum CR4
-{
+enum CR4 {
     CR4_VME        = 1 << 0, // Virtual 8086 mode
     CR4_PVI        = 1 << 1, // Protected mode virtual interrupts
     CR4_TSD        = 1 << 2,
@@ -40,8 +40,7 @@ enum CR4
     CR4_PKE        = 1 << 22,
 };
 
-enum XCR0
-{
+enum XCR0 {
     XCR0_FPU = 1 << 0,
     XCR0_XSAVE = 1 << 1,
     XCR0_AVX = 1 << 2,
@@ -54,14 +53,12 @@ enum XCR0
     XCR0_DAAX = 1 << 10,
 };
 
-enum XSS 
-{
+enum XSS {
     XSS_PT = 1 << 8,
     XSS_HDC = 1 << 13,
 };
 
-enum EFER
-{
+enum EFER {
     EFER_SCE = 1 << 0,
     EFER_LME = 1 << 8,
     EFER_LMA = 1 << 10,
@@ -72,25 +69,25 @@ enum EFER
     EFER_TCE = 1 << 15,
 };
 
-unsigned int cr0_get(unsigned int mask);
-void cr0_set(unsigned int mask);
-void cr0_clear(unsigned int mask);
+uint32_t cr0_get(uint32_t mask);
+void cr0_set(uint32_t mask);
+void cr0_clear(uint32_t mask);
 
-unsigned int cr3_get(void);
-void cr3_set(unsigned int);
+uint32_t cr3_get(void);
+void cr3_set(uint32_t);
 
-unsigned int cr4_get(unsigned int mask);
-void cr4_set(unsigned int mask);
+uint32_t cr4_get(uint32_t mask);
+void cr4_set(uint32_t mask);
 
-unsigned long long rdmsr(unsigned int ecx);
-void wrmsr(unsigned int ecx, unsigned long long value);
+uint64_t rdmsr(uint32_t ecx);
+void wrmsr(uint32_t ecx, uint64_t value);
 
-unsigned long long efer_get(unsigned long long mask);
-void efer_set(unsigned long long mask);
+uint64_t efer_get(uint64_t mask);
+void efer_set(uint64_t mask);
 
-unsigned long long xss_get(unsigned long long mask);
-void xss_set(unsigned long long mask);
+uint64_t xss_get(uint64_t mask);
+void xss_set(uint64_t mask);
 
-unsigned long long xcr0_get(unsigned long long mask);
-void xcr0_set(unsigned long long mask);
-void xcr0_clear(unsigned long long mask);
+uint64_t xcr0_get(uint64_t mask);
+void xcr0_set(uint64_t mask);
+void xcr0_clear(uint64_t mask);
