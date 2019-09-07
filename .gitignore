@@ -4,4 +4,4 @@
 *.bin
 *.ipch
 *.json
-%@
+cmake
