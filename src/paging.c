@@ -18,8 +18,8 @@ extern uint32_t page_directory[1024];
 extern void page_unmark(size_t page);
 extern void superpage_unmark(size_t page);
 
-size_t page_bitmap[32768] = {0};
-size_t superpage_bitmap[32] = {0};
+extern size_t page_bitmap[32768];
+extern size_t superpage_bitmap[32];
 
 enum MMAP_TYPE {
 	MMAP_FREE,
@@ -57,12 +57,33 @@ typedef struct { uintptr_t start, end; } BoundPair;
 
 static const BoundPair physical_bound_checks[] = {
 	MAKE_PAIR(0x0, 0xFFFFF), // don't map the first MB
-	MAKE_PAIR(&_kernel_phys_start, &_kernel_virt_end),
+	MAKE_PAIR(&_kernel_phys_start, &_kernel_phys_end),
 };
 
 static const BoundPair virtual_bound_checks[] = {
+	MAKE_PAIR(0x0, 0xFFFFF), // don't map the first MB
 	MAKE_PAIR(&_kernel_virt_start, &_kernel_virt_end)
 };
+
+static bool paging_check_physical_bounds(uintptr_t address) {
+	for(size_t i = 0; i < (sizeof(physical_bound_checks) / sizeof(physical_bound_checks[0])); ++i) {
+		if(bound(physical_bound_checks[i].start, physical_bound_checks[i].end, address, address + 0xFFF)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool paging_check_virtual_bounds(uintptr_t address) {
+	for(size_t i = 0; i < (sizeof(virtual_bound_checks) / sizeof(virtual_bound_checks[0])); ++i) {
+		if(bound(virtual_bound_checks[i].start, virtual_bound_checks[i].end, address, address + 0xFFF)) {
+			return true;
+		}
+	}
+
+	return false;
+}
 
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 	memset(page_bitmap, 0xFF, sizeof(page_bitmap));
@@ -83,51 +104,53 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 		multiboot_memory_map_t* map = &maps[type][*counter];
 		
 		memcpy(map, mmap, sizeof(multiboot_memory_map_t));
-		
+
 		if(type == MMAP_FREE) {
-			const size_t limit = mmap->addr + mmap->len;
+			const uint64_t limit = (uint64_t)mmap->addr + (uint64_t)mmap->len;
 			
 			for(uintptr_t physical_address = mmap->addr; physical_address < limit;) {
 				if(limit - physical_address < 0x1000) {
+					physical_address += 0x1000;
 					continue;
 				}
-
+				
 				// overflow check for 32 bit machines (64 bit shouldn't be able to overflow)
 				#ifdef _x86
-					if((limit > 0xFFFFFFFF) || (((unsigned long long)virtual_address + 0x1000ULL) > 0xFFFFFFFFULL)) {
+					if((limit > 0xFFFFFFFF) || (((uint64_t)virtual_address + 0x1000ULL) > 0xFFFFFFFFULL)) {
 						printf("Memory map truncated (32 bit OS cannot access more than 4G)\n");
 						return;
 					}
 				#endif
 
-				for(size_t i = 0; i < (sizeof(physical_bound_checks) / sizeof(physical_bound_checks[0])); ++i) {
-					if(bound(physical_bound_checks[i].start, physical_bound_checks[i].end, physical_address, physical_address + 0xFFF)) {
-						physical_address += 0x1000;
-						continue;
-					}
+				if(paging_check_physical_bounds(physical_address)) {
+					physical_address += 0x1000;
+					continue;
 				}
 
-				for(size_t i = 0; i < (sizeof(virtual_bound_checks) / sizeof(virtual_bound_checks[0])); ++i) {
-					if(bound(virtual_bound_checks[i].start, virtual_bound_checks[i].end, virtual_address, virtual_address + 0xFFF)) {
-						virtual_address += 0x1000; // need to increment only virtual address
-						continue;
-					}
+				if(paging_check_virtual_bounds(virtual_address)) {
+					virtual_address += 0x1000;
+					continue;
 				}
-
+				
 				map_page(physical_address, virtual_address, Present | ReadWrite);
 
-				// const uintptr_t page = virtual_address >> 12;
-				
-				// page_unmark(page);
-				// superpage_unmark(page);
+				const uintptr_t page = virtual_address >> 12;
+
+				page_unmark(page);
+				superpage_unmark(page);
+
+				// printf("%x\n", page_bitmap[page >> 5]);
 				
 				physical_address += 0x1000;
 				virtual_address += 0x1000;
 			}
 		}
+
 		mmap = (multiboot_memory_map_t*) ((uintptr_t)mmap + mmap->size + sizeof(mmap->size));
 		(*counter)++;
 	}
+
+	heap_init();
 }
 
 ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags) {

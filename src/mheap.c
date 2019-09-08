@@ -20,15 +20,28 @@ size_t kernel_mem = 0;
 /*
 	realloc can give different location while freeing the current
 	if realloc cannot give mem, dont free, return 0,
-	if realloc is successful, return new location
+	if realloc is successful, return new location (or old resized)
 */
 
 alloc_t* free_allocs = 0, *used_allocs = 0;
+static size_t free_memory = 0;
+static size_t used_memory = 4096;
 
-static void* alloc(alloc_t* block, size_t size)
-{
-	if((block->size - size) <= sizeof(alloc_t))
-	{
+size_t heap_get_free_mem(void) {
+	return free_memory;
+}
+
+void heap_init(void) {
+	free_allocs = palloc(1);
+	for(size_t i = 0; i < MAX_PAGE << 5; ++i) {
+		if(!page_get_value(i)) {
+			free_memory += 4096;
+		}
+	}
+}
+
+static void* alloc(alloc_t* block, size_t size) {
+	if((block->size - size) <= sizeof(alloc_t)) {
 		/*
 			alloc the whole block
 		*/
@@ -37,6 +50,9 @@ static void* alloc(alloc_t* block, size_t size)
 		block->next = used_allocs;
 		block->prev = 0;
 		used_allocs = block;
+
+		free_memory -= block->size;
+		used_memory += block->size;
 
 		return (void*)(block+1);
 	}
@@ -76,6 +92,9 @@ static void* alloc(alloc_t* block, size_t size)
 
 	free_allocs = new;
 
+	free_memory -= size;
+	used_memory += size;
+
 	return (void*)(block + 1);
 }
 
@@ -102,8 +121,8 @@ void* malloc(size_t size)
 		size of nodes is not sufficient, allocate a new one
 	*/
 	
-	size_t aligned = align(size, 4096);
-	size_t pages_needed = aligned / 4096;
+	const size_t aligned = align(size, 4096);
+	const size_t pages_needed = aligned / 4096;
 
 	alloc_t* new_block = palloc(pages_needed);
 
@@ -126,6 +145,9 @@ void free(void* address)
 	
 	alloc_t* block = ((alloc_t*)address - 1);
 	
+	used_memory -= block->size;
+	free_memory += block->size;
+
 	/*
 		block + block->size = next phys node
 		how to merge backwards?	

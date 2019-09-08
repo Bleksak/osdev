@@ -44,7 +44,7 @@ Userspace
 char buffer[64] = {'a', 'b', 'c'};
 char buffer2[64];
 
-NORETURN void kernel_main(struct multiboot_info* mbd)
+NORETURN void kernel_main(multiboot_info_t* mbd)
 {
     gdt_install();
     idt_install();
@@ -52,38 +52,29 @@ NORETURN void kernel_main(struct multiboot_info* mbd)
     __asm__ volatile("sti");
 
 	cpu_init();
-
     paging_init(mbd->mmap_addr, mbd->mmap_length);
+    printf("Paging initialized\n");
+    printf("Usable memory: %d MB\n", heap_get_free_mem() / (1024 * 1024));
 
-    // printf("wtf?");
+    BiosDataAreaInit();
 
-    // printf("%p\n", palloc(3));
-    // printf("%p\n", palloc(3));
-    // printf("%p\n", palloc(3));
-    // printf("%p\n", palloc(3));
-
-    //void* addr = palloc(3);
-    //void* addr2 = palloc(7);
-
-    //printf("%p\n%p\n", addr, addr2);
-
-    // BiosDataAreaInit();
+    
 
     // printf("%x\n", pci_config_read_word(0, 0, 0, 0));
     // printf("%x\n", pci_get_header_type(0, 0, 0));
 
-    // ata_init();
+    ata_init();
 
-    // Result read = ata_read(grab_drive(1), 0, 1);
+    Result read = ata_read(grab_drive(1), 0, 1);
 
-    // if(!read.ok)
-    // {
-    //     printf("NOK %s\n", read.result);
-    // }
+    if(!read.ok)
+    {
+        printf("NOK %s\n", read.result);
+    }
 
-    // unsigned short* res = read.result;
+    unsigned short* res = read.result;
     
-    // printf("%x\n", res[255]);
+    printf("%x\n", res[255]);
 
     // if(AcpiInit())
     // {
