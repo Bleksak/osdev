@@ -40,6 +40,12 @@ enum CR4 {
     CR4_PKE        = 1 << 22,
 };
 
+enum MSR_ADDRESSES {
+    MSR_EFER = 0xC0000080,
+    MSR_XSS  = 0x0DA0,
+    MSR_APIC = 0x1B,
+};
+
 enum XCR0 {
     XCR0_FPU = 1 << 0,
     XCR0_XSAVE = 1 << 1,

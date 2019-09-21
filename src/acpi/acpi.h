@@ -1,21 +1,19 @@
 #pragma once
 #include "../std.h"
 
-struct SDT_Header
-{
-    char Signature[4];
-    uint32_t Length;
-    uint8_t Revision;
-    uint8_t Checksum;
-    char OEMID[6];
-    char OEMTableID[8];
-    uint32_t OEMRevision;
-    uint32_t CreatorID;
-    uint32_t CreatorRevision;
+struct SDT_Header {
+    char signature[4];
+    uint32_t length;
+    uint8_t revision;
+    uint8_t checksum;
+    char oem_id[6];
+    char oem_table_id[8];
+    uint32_t oem_revision;
+    uint32_t creator_id;
+    uint32_t creator_revision;
 } PACKED;
 
-enum ACPI_Capabilities
-{
+enum ACPI_Capabilities {
     ACPI_MADT = 1 << 0,
     ACPI_BERT = 1 << 1,
     ACPI_CPEP = 1 << 2,
@@ -40,7 +38,7 @@ enum ACPI_Capabilities
     ACPI_XSDT = 1 << 21,
 };
 
-uint32_t getAcpiCapabilities(void);
+uint32_t acpi_get_capabilities(void);
 
-bool doChecksum(uint8_t* ptr, size_t len);
-bool AcpiInit(void);
+bool do_checksum(uint8_t* ptr, size_t len);
+bool acpi_init(void);

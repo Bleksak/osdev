@@ -165,11 +165,11 @@ inline uintptr_t get_physical_address(uintptr_t virtual) {
     return (page_table[virtual >> 22][(virtual >> 12) & 0x3ff] & ~0xFFF) | (virtual & 0xfff);
 }
 
-uintptr_t getCurrentVirtualMemoryOffset(void) {
+uintptr_t mem_offset_get(void) {
 	return virtual_memory_offset;
 }
 
-void setCurrentVirtualMemoryOffset(uintptr_t address) {
+void mem_offset_set(uintptr_t address) {
 	assert(address < PUBLIC_VIRTUAL_MEMORY_START);
 	virtual_memory_offset = address;
 }

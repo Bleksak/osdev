@@ -6,20 +6,18 @@
 
 #define BDA_OFFSET 0
 
-const struct BiosDataArea* BDA;
+const struct BiosDataArea* bda;
 
-void BiosDataAreaInit(void)
-{
-    const uintptr_t virtual_offset = getCurrentVirtualMemoryOffset();
+void bda_init(void) {
+    const uintptr_t virtual_offset = mem_offset_get();
     map_page(0, virtual_offset, Present);
-    setCurrentVirtualMemoryOffset(virtual_offset + 0x1000);
+    mem_offset_set(virtual_offset + 0x1000);
 
-    BDA = (const struct BiosDataArea*)virtual_offset;
+    bda = (const struct BiosDataArea*)virtual_offset;
 
-    ExtendedBDAInit(BDA->ExtendedBDAPtr * 0x10);
+    ebda_init(bda->ExtendedBDAPtr * 0x10);
 }
 
-const struct BiosDataArea* getBDA(void)
-{
-    return BDA;
+const struct BiosDataArea* bda_get(void) {
+    return bda;
 }

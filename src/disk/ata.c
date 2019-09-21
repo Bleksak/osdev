@@ -3,6 +3,7 @@
 #include "../console.h"
 #include "../memory.h"
 #include "../mheap.h"
+#include "../os.h"
 
 #define ATA_PRIMARY_IO_BASE 0x1f0
 #define ATA_PRIMARY_IO_CONTROL_BASE 0x3f6
@@ -25,36 +26,37 @@ enum ATA_REGISTERS {
 	ATA_COMMAND_REGISTER = 7,
 };
 
-static const struct ATARegisters primary_registers = {
-	ATA_PRIMARY_IO_BASE + ATA_DATA_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_ERROR_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_FEATURES_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_SECTOR_COUNT_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_LBA_LOW_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_LBA_MID_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_LBA_HIGH_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_DRIVE_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_STATUS_REGISTER,
-	ATA_PRIMARY_IO_BASE + ATA_COMMAND_REGISTER,
-	ATA_PRIMARY_IO_CONTROL_BASE + ATA_ALTERNATE_STATUS_REGISTER,
-	ATA_PRIMARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
-	ATA_PRIMARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
-};
-
-static const struct ATARegisters secondary_registers = {
-	ATA_SECONDARY_IO_BASE + ATA_DATA_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_ERROR_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_FEATURES_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_SECTOR_COUNT_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_LBA_LOW_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_LBA_MID_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_LBA_HIGH_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_DRIVE_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_STATUS_REGISTER,
-	ATA_SECONDARY_IO_BASE + ATA_COMMAND_REGISTER,
-	ATA_SECONDARY_IO_CONTROL_BASE + ATA_ALTERNATE_STATUS_REGISTER,
-	ATA_SECONDARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
-	ATA_SECONDARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
+static const struct ATARegisters registers[2] = {
+	{
+		ATA_PRIMARY_IO_BASE + ATA_DATA_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_ERROR_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_FEATURES_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_SECTOR_COUNT_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_LBA_LOW_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_LBA_MID_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_LBA_HIGH_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_DRIVE_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_STATUS_REGISTER,
+		ATA_PRIMARY_IO_BASE + ATA_COMMAND_REGISTER,
+		ATA_PRIMARY_IO_CONTROL_BASE + ATA_ALTERNATE_STATUS_REGISTER,
+		ATA_PRIMARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
+		ATA_PRIMARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
+	},
+	{
+		ATA_SECONDARY_IO_BASE + ATA_DATA_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_ERROR_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_FEATURES_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_SECTOR_COUNT_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_LBA_LOW_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_LBA_MID_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_LBA_HIGH_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_DRIVE_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_STATUS_REGISTER,
+		ATA_SECONDARY_IO_BASE + ATA_COMMAND_REGISTER,
+		ATA_SECONDARY_IO_CONTROL_BASE + ATA_ALTERNATE_STATUS_REGISTER,
+		ATA_SECONDARY_IO_CONTROL_BASE + ATA_DEVICE_CONTROL_REGISTER,
+		ATA_SECONDARY_IO_CONTROL_BASE + ATA_DRIVE_ADDRESS_REGISTER,
+	}
 };
 
 enum ATA_COMMANDS {
@@ -109,27 +111,27 @@ enum StatusRegister {
 	BSY = 1 << 7,
 };
 
-inline static void setDeviceControlRegister(unsigned char id, enum DeviceControlRegister toggle) {
-	outb(drives[id].registers.device_control, inb(drives[id].registers.device_control) | toggle);
+inline static void setDeviceControlRegister(const struct ATARegisters* registers, enum DeviceControlRegister toggle) {
+	outb(registers->device_control, inb(registers->device_control) | toggle);
 }
 
-inline static void clearDeviceControlRegister(unsigned char id, enum DeviceControlRegister toggle) {
-	outb(drives[id].registers.device_control, inb(drives[id].registers.device_control & ~toggle));
+inline static void clearDeviceControlRegister(const struct ATARegisters* registers, enum DeviceControlRegister toggle) {
+	outb(registers->device_control, inb(registers->device_control & ~toggle));
 }
 
-static enum ATA_TYPE ata_detect(Drive* drive) {
-	setDeviceControlRegister(drive->id, SRST); // do a software reset
-	inb(drive->registers.device_control);
-	clearDeviceControlRegister(drive->id, SRST);
-	outb(drive->registers.drive, 0xA0 | (drive->slave << 4));
+static enum ATA_TYPE ata_detect(const struct ATARegisters* registers, const bool slave) {
+	setDeviceControlRegister(registers, SRST); // do a software reset
+	inb(registers->device_control);
+	clearDeviceControlRegister(registers, SRST);
+	outb(registers->drive, 0xA0 | (slave << 4));
 
-	inb(drive->registers.device_control);
-	inb(drive->registers.device_control);
-	inb(drive->registers.device_control);
-	inb(drive->registers.device_control);
+	inb(registers->device_control);
+	inb(registers->device_control);
+	inb(registers->device_control);
+	inb(registers->device_control);
 
-	unsigned int cl = inb(drive->registers.lba_mid);
-	unsigned int ch = inb(drive->registers.lba_high);
+	unsigned int cl = inb(registers->lba_mid);
+	unsigned int ch = inb(registers->lba_high);
 
 	if(cl == 0x14 && ch == 0xEB) {
 		return ATA_PATAPI;
@@ -151,31 +153,31 @@ static enum ATA_TYPE ata_detect(Drive* drive) {
 	return ATA_UNKNOWN;
 }
 
-static bool ata_identify(unsigned int id) {
-	outb(drives[id].registers.drive, 0xA0 | (drives[id].slave << 4));
-	outb(drives[id].registers.lba_low, 0);
-	outb(drives[id].registers.lba_mid, 0);
-	outb(drives[id].registers.lba_high, 0);
-	outb(drives[id].registers.sector_count, 0);
+static bool ata_identify(Drive* drive) {
+	outb(drive->registers->drive, 0xA0 | (drive->slave << 4));
+	outb(drive->registers->lba_low, 0);
+	outb(drive->registers->lba_mid, 0);
+	outb(drive->registers->lba_high, 0);
+	outb(drive->registers->sector_count, 0);
 
-	outb(drives[id].registers.command, ATA_IDENTIFY);
+	outb(drive->registers->command, ATA_IDENTIFY);
 
-	if(!inb(drives[id].registers.status)) {
-		drives[id].type = ATA_UNKNOWN;
+	if(!inb(drive->registers->status)) {
+		drive->type = ATA_UNKNOWN;
 		return false;
 	}
 
-	while(inb(drives[id].registers.status) & BSY);
+	while(inb(drive->registers->status) & BSY);
 
-	if(inb(drives[id].registers.lba_mid) || inb(drives[id].registers.lba_high)) {
-		drives[id].type = ATA_UNKNOWN;
+	if(inb(drive->registers->lba_mid) || inb(drive->registers->lba_high)) {
+		drive->type = ATA_UNKNOWN;
 		return false;
 	}
 
 	while(true) {
-		unsigned char status = inb(drives[id].registers.status);
+		unsigned char status = inb(drive->registers->status);
 		if(status & ERR) {
-			drives[id].type = ATA_UNKNOWN;
+			drive->type = ATA_UNKNOWN;
 			return false;
 		}
 
@@ -185,49 +187,51 @@ static bool ata_identify(unsigned int id) {
 	}
 
 	for(unsigned int i = 0; i < 256; ++i) {
-		((unsigned short*)&drives[id].identify)[i] = inw(drives[id].registers.data);
+		((unsigned short*)&drive->identify)[i] = inw(drive->registers->data);
 	}
 
 	return true;
 }
 
 size_t ata_init(void) {
-
 	size_t drive_count = 0;
 
 	for(size_t i = 0; i < 4; ++i) {
-		setDeviceControlRegister(i, nIEN); // disable interrupts
-		enum ATA_TYPE type = ata_detect(&drives[i]);
-		if(type == ATA_UNKNOWN) {
+		struct Drive drive_tmp = {.id = i, .type = ata_detect(&registers[i >> 1], i & 1), .slave = i & 1, .registers = &registers[i >> 1]};
+
+		setDeviceControlRegister(drive_tmp.registers, nIEN); // disable interrupts
+
+		if(drive_tmp.type == ATA_UNKNOWN) {
 			continue;
 		}
 
-		drives[i].type = type;
-
-		if(!ata_identify(i)) {
+		if(!ata_identify(&drive_tmp)) {
 			continue;
 		}
 
-		if(drives[i].identify.Supported2.ExtendedUserAddressableSectors) {
-			if(drives[i].identify.SectorCountExt > 0x0000FFFFFFFFFFFF) {
+		os.drives = realloc(os.drives, sizeof(Drive) * (drive_count+1));
+		memcpy(&os.drives[drive_count], &drive_tmp, sizeof(Drive));
+
+		if(os.drives[i].identify.Supported2.ExtendedUserAddressableSectors) {
+			if(os.drives[i].identify.SectorCountExt > 0x0000FFFFFFFFFFFF) {
 				printf("Sector Count exceeded maximum value");
 			}
-			else drives[i].data.ExtSectors = drives[i].identify.SectorCountExt;
+			else os.drives[i].data.ExtSectors = os.drives[i].identify.SectorCountExt;
 		}
-		else drives[i].data.ExtSectors = 0;
+		else os.drives[i].data.ExtSectors = 0;
 
-		drives[i].data.LowAddressableSectors = drives[i].identify.SectorCountLow;
-		drives[i].data.HighAddressableSectors = drives[i].identify.SectorCount;
+		os.drives[i].data.LowAddressableSectors = os.drives[i].identify.SectorCountLow;
+		os.drives[i].data.HighAddressableSectors = os.drives[i].identify.SectorCount;
 
-		if(!drives[i].identify.PhysicalLogicalSectorSize.one || drives[i].identify.PhysicalLogicalSectorSize.zero
-			|| !drives[i].identify.PhysicalLogicalSectorSize.MultipleLogicalPerPhysical) {
+		if(!os.drives[i].identify.PhysicalLogicalSectorSize.one || os.drives[i].identify.PhysicalLogicalSectorSize.zero
+			|| !os.drives[i].identify.PhysicalLogicalSectorSize.MultipleLogicalPerPhysical) {
 
-			drives[i].data.PhysicalSectorSize = 512;
+			os.drives[i].data.PhysicalSectorSize = 512;
 		}
 		else {
-			drives[i].data.LogicalSectorAlignment = drives[i].identify.LogicalSectorAlignment.offset;
-			drives[i].data.LogicalSectorMultiplier = 1 << drives[i].identify.PhysicalLogicalSectorSize.LogicalSectorsPerPhysical;
-			drives[i].data.PhysicalSectorSize = 512 * drives[i].data.LogicalSectorMultiplier;
+			os.drives[i].data.LogicalSectorAlignment = os.drives[i].identify.LogicalSectorAlignment.offset;
+			os.drives[i].data.LogicalSectorMultiplier = 1 << os.drives[i].identify.PhysicalLogicalSectorSize.LogicalSectorsPerPhysical;
+			os.drives[i].data.PhysicalSectorSize = 512 * os.drives[i].data.LogicalSectorMultiplier;
 
 		}
 
@@ -238,28 +242,28 @@ size_t ata_init(void) {
 }
 
 static void ata_prepare_low_operation(const Drive* drive, unsigned long long lba, unsigned char count) {
-	outb(drive->registers.lba_low, lba & 0xFF);
-	outb(drive->registers.lba_mid, (lba >> 8) & 0xFF);
-	outb(drive->registers.lba_high, (lba >> 16) & 0xFF);
-	outb(drive->registers.sector_count, count);
+	outb(drive->registers->lba_low, lba & 0xFF);
+	outb(drive->registers->lba_mid, (lba >> 8) & 0xFF);
+	outb(drive->registers->lba_high, (lba >> 16) & 0xFF);
+	outb(drive->registers->sector_count, count);
 }
 
 static void ata_prepare_high_operation(const Drive* drive, unsigned long long lba, unsigned short count) {
-	outb(drive->registers.sector_count, (count >> 8) & 0xFF);
-	outb(drive->registers.lba_low, (lba >> 24) & 0xFF);
-	outb(drive->registers.lba_mid, (lba >> 32) & 0xFF);
-	outb(drive->registers.lba_high, (lba >> 40) & 0xFF);
-	outb(drive->registers.sector_count, count & 0xFF);
-	outb(drive->registers.lba_low, lba & 0xFF);
-	outb(drive->registers.lba_mid, (lba >> 8) & 0xFF);
-	outb(drive->registers.lba_high, (lba >> 16) & 0xFF);
+	outb(drive->registers->sector_count, (count >> 8) & 0xFF);
+	outb(drive->registers->lba_low, (lba >> 24) & 0xFF);
+	outb(drive->registers->lba_mid, (lba >> 32) & 0xFF);
+	outb(drive->registers->lba_high, (lba >> 40) & 0xFF);
+	outb(drive->registers->sector_count, count & 0xFF);
+	outb(drive->registers->lba_low, lba & 0xFF);
+	outb(drive->registers->lba_mid, (lba >> 8) & 0xFF);
+	outb(drive->registers->lba_high, (lba >> 16) & 0xFF);
 }
 
 static bool ata_poll(const Drive* drive) {
 	unsigned char status;
 
-	while(inb(drive->registers.status) & BSY);
-	while(!((status = inb(drive->registers.status)) & DRQ)) {
+	while(inb(drive->registers->status) & BSY);
+	while(!((status = inb(drive->registers->status)) & DRQ)) {
 		if(status & ERR) {
 			return false;
 		}
@@ -275,6 +279,8 @@ static Result ata_actual_read(const Drive* drive, unsigned char count) {
 		return Err("Out of memory");
 	}
 
+	
+
 	for(unsigned int i = 0; i < count; ++i) {
 		if(!ata_poll(drive)) {
 			free(buffer);
@@ -282,7 +288,7 @@ static Result ata_actual_read(const Drive* drive, unsigned char count) {
 		}
 
 		for(unsigned short j = 0; j < 256; ++j) {
-			buffer[i * 256 + j] = inw(drive->registers.data);
+			buffer[i * 256 + j] = inw(drive->registers->data);
 		}
 	}
 
@@ -296,48 +302,44 @@ static bool ata_actual_write(const Drive* drive, unsigned char count, const unsi
 
 	for(unsigned int i = 0; i < count; ++i) {
 		for(unsigned int j = 0; j < 256; ++j) {
-			outw(drive->registers.data, buffer[i * 256 + j]);
+			outw(drive->registers->data, buffer[i * 256 + j]);
 		}
 	}
 
-	outb(drive->registers.data, ATA_FLUSH_CACHE);
+	outb(drive->registers->data, ATA_FLUSH_CACHE);
 	return ata_poll(drive);
 }
 
 static Result ata_read_low(const Drive* drive, unsigned long long lba, unsigned char count) {
-	outb(drive->registers.drive, ((lba >> 24) & 0xF) | (0xE0 | drive->slave << 4));
+	outb(drive->registers->drive, ((lba >> 24) & 0xF) | (0xE0 | drive->slave << 4));
 	ata_prepare_low_operation(drive, lba, count);
-	outb(drive->registers.command, ATA_READ_SECTORS);
+	outb(drive->registers->command, ATA_READ_SECTORS);
 
 	return ata_actual_read(drive, count);
 }
 
 static Result ata_read_high(const Drive* drive, unsigned long long lba, unsigned short count) {
-	outb(drive->registers.drive, 0x40 | (drive->slave << 4));
+	outb(drive->registers->drive, 0x40 | (drive->slave << 4));
 	ata_prepare_high_operation(drive, lba, count);
-	outb(drive->registers.command, ATA_READ_SECTORS_EXT);
+	outb(drive->registers->command, ATA_READ_SECTORS_EXT);
 
 	return ata_actual_read(drive, count);
 }
 
 static bool ata_write_low(const Drive* drive, unsigned long long lba, unsigned char count, const unsigned short* buffer) {
-	outb(drive->registers.drive, ((lba >> 24) & 0xF) | (0xE0 | drive->slave << 4));
+	outb(drive->registers->drive, ((lba >> 24) & 0xF) | (0xE0 | drive->slave << 4));
 	ata_prepare_low_operation(drive, lba, count);
-	outb(drive->registers.command, ATA_WRITE_SECTORS);
+	outb(drive->registers->command, ATA_WRITE_SECTORS);
 
 	return ata_actual_write(drive, count, buffer);
 }
 
 static bool ata_write_high(const Drive* drive, unsigned long long lba, unsigned short count, const unsigned short* buffer) {
-	outb(drive->registers.drive, 0x40 | (drive->slave << 4));
+	outb(drive->registers->drive, 0x40 | (drive->slave << 4));
 	ata_prepare_high_operation(drive, lba, count);
-	outb(drive->registers.command, ATA_WRITE_SECTORS_EXT);
+	outb(drive->registers->command, ATA_WRITE_SECTORS_EXT);
 
 	return ata_actual_write(drive, count, buffer);
-}
-
-const Drive* grab_drive(unsigned char i) {
-	return &drives[i];
 }
 
 Result ata_read(const Drive* drive, unsigned long long lba, unsigned short count) {
@@ -355,6 +357,7 @@ Result ata_read(const Drive* drive, unsigned long long lba, unsigned short count
 	unsigned long long lba_start = 512 * (lba + drive->data.LogicalSectorAlignment) / drive->data.PhysicalSectorSize;
 	unsigned long long lba_end   = 512 * (lba + count + drive->data.LogicalSectorAlignment) / drive->data.PhysicalSectorSize;
 	unsigned short actual_count  = lba_end - lba_start + 1;
+
 
 	if(lba_end <= drive->data.LowAddressableSectors && actual_count <= 256) {
 		return ata_read_low(drive, lba_start, (actual_count == 256) ? 0 : (unsigned char)actual_count);

@@ -1,10 +1,8 @@
 #pragma once
-#include "partition.h"
 #include "../std.h"
-
 #include "../result.h"
-
 #include "../attributes.h"
+#include "partition.h"
 
 enum ATA_TYPE {
 	ATA_NONE = 0,
@@ -384,7 +382,7 @@ struct Drive {
 
     Partition* partitions;
     
-    const struct ATARegisters registers;
+    const struct ATARegisters* registers;
     struct ATAIdentify identify;
     struct {
         uint16_t LogicalSectorMultiplier;
@@ -399,7 +397,6 @@ struct Drive {
 typedef struct Drive Drive;
 
 size_t ata_init(void);
-const Drive* grab_drive(uint8_t index);
 
 Result ata_read(const Drive* drive, uint64_t lba, uint16_t count);
 Result ata_write(const Drive* drive, uint64_t lba, uint16_t count, const uint16_t* buffer);

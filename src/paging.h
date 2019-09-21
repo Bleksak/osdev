@@ -28,8 +28,8 @@ enum PageFlags
 
 #define GET_PHYS(addr) get_physical_address(((uintptr_t)addr))
 
-PURE uintptr_t getCurrentVirtualMemoryOffset(void);
-void setCurrentVirtualMemoryOffset(uintptr_t address);
+PURE uintptr_t mem_offset_get(void);
+void mem_offset_set(uintptr_t address);
 
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len);
 ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);

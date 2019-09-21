@@ -1,7 +1,6 @@
 #pragma once
 
 #include "disk/ata.h"
-#include "disk/partition.h"
 
 struct OS {
     Drive* drives;

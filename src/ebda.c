@@ -4,21 +4,20 @@
 #include "assert.h"
 #include "paging.h"
 
-const struct ExtendedBiosDataArea* EBDA = 0;
+const struct ExtendedBiosDataArea* ebda = 0;
 
-void ExtendedBDAInit(const uintptr_t EBDAptr)
+void ebda_init(const uintptr_t ebda_ptr)
 {
-    const uintptr_t currentVirtualMemoryOffset = getCurrentVirtualMemoryOffset();
+    const uintptr_t currentVirtualMemoryOffset = mem_offset_get();
 
-    const ptrdiff_t offset = map_page(EBDAptr, currentVirtualMemoryOffset, Present);
-    setCurrentVirtualMemoryOffset(currentVirtualMemoryOffset + 0x1000);
+    const ptrdiff_t offset = map_page(ebda_ptr, currentVirtualMemoryOffset, Present);
+    mem_offset_set(currentVirtualMemoryOffset + 0x1000);
 
-    EBDA = (struct ExtendedBiosDataArea*) currentVirtualMemoryOffset + offset;
+    ebda = (struct ExtendedBiosDataArea*) currentVirtualMemoryOffset + offset;
 
-    assert(EBDA->ebda_size == 1 || EBDA->ebda_size == 2);
+    assert(ebda->ebda_size == 1 || ebda->ebda_size == 2);
 }
 
-const struct ExtendedBiosDataArea* getEBDA(void)
-{
-    return EBDA;
+const struct ExtendedBiosDataArea* ebda_get(void) {
+    return ebda;
 }
