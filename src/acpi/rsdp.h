@@ -4,28 +4,25 @@
 
 #include "../attributes.h"
 
-struct _RsdpV1
-{
-    char Signature[8];
-    uint8_t Checksum;
-    char OEMID[6];
-    uint8_t Revision;
-    uint32_t RsdtAddress;
+struct _RsdpV1 {
+    char signature[8];
+    uint8_t checksum;
+    char oem_id[6];
+    uint8_t revision;
+    uint32_t rsdt_address;
 } PACKED;
 
-struct _RsdpV2
-{
+struct _RsdpV2 {
     struct _RsdpV1 v1;
-    uint32_t Length;
-    uint64_t XsdtAddress;
-    uint8_t ExtendedChecksum;
+    uint32_t length;
+    uint64_t xsdt_address;
+    uint8_t ext_checksum;
     uint8_t reserved[3];
 } PACKED;
 
-union RSDP
-{
+union RSDP {
     struct _RsdpV1 v1;
     struct _RsdpV2 v2;
 } PACKED;
 
-union RSDP* RsdpInit(void);
+union RSDP* rsdp_init(void);

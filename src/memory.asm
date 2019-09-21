@@ -49,8 +49,8 @@ bits 32
 
 ;     ret
 
-global memset
-memset:
+global memset_normal
+memset_normal:
     push esi
     
     mov edi, dword [esp + 8]
@@ -73,8 +73,6 @@ memset:
 .done:
     pop esi
     ret
-
-global memcpy_basic
 
 global memcpy_basic_opt
 memcpy_basic_opt:

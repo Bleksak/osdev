@@ -20,6 +20,8 @@
 
 #include "ebda.h"
 
+#include "os.h"
+
 /*
     ****TODO LIST****
 
@@ -41,8 +43,8 @@ Userspace
 */
 #include "align.h"
 
-char buffer[64] = {'a', 'b', 'c'};
-char buffer2[64];
+char buffer[65] = {'a', 'b', 'c'};
+char buffer2[65];
 
 NORETURN void kernel_main(multiboot_info_t* mbd)
 {
@@ -52,38 +54,42 @@ NORETURN void kernel_main(multiboot_info_t* mbd)
     __asm__ volatile("sti");
 
 	cpu_init();
+
     paging_init(mbd->mmap_addr, mbd->mmap_length);
     printf("Paging initialized\n");
     printf("Usable memory: %d MB\n", heap_get_free_mem() / (1024 * 1024));
 
-    BiosDataAreaInit();
+    bda_init();
 
+
+
+    // ata_init();
+
+
+
+
+    // Result read = ata_read(&os.drives[1], 0, 1);
+
+
+    // if(!read.ok)
+    // {
+    //     printf("NOK %s\n", read.result);
+    // }
+    
     
 
-    // printf("%x\n", pci_config_read_word(0, 0, 0, 0));
-    // printf("%x\n", pci_get_header_type(0, 0, 0));
+    // unsigned short* res = read.result;
+    
+    // printf("%x\n", res[255]);
 
-    ata_init();
-
-    Result read = ata_read(grab_drive(1), 0, 1);
-
-    if(!read.ok)
+    if(acpi_init())
     {
-        printf("NOK %s\n", read.result);
+        printf("cool");
     }
-
-    unsigned short* res = read.result;
-    
-    printf("%x\n", res[255]);
-
-    // if(AcpiInit())
-    // {
-    //     printf("cool");
-    // }
-    // else
-    // {
-    //     printf("not cool");
-    // }
+    else
+    {
+        printf("not cool");
+    }
 
     //partition_init();
     

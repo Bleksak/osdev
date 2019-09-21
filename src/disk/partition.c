@@ -4,7 +4,11 @@
 
 #include "../attributes.h"
 
-#include "mheap.h"
+#include "../mheap.h"
+
+#include "../os.h"
+
+extern OS os;
 
 #define MBR_OFFSET 446
 
@@ -33,7 +37,7 @@ static uint64_t checksum(const struct MBRPartition* partition) {
 }
 
 size_t partition_init_drive(uint32_t drive, Partition** partitions) { // returns the partition count
-    Result res = ata_read(grab_drive(drive), 0, 1);
+    Result res = ata_read(&os.drives[drive], 0, 1);
     if(!res.ok) {
         return 0;
     }
@@ -61,7 +65,7 @@ size_t partition_init_drive(uint32_t drive, Partition** partitions) { // returns
 
         *partitions = realloc(*partitions, sizeof(Partition) * (partition_count + 1));
         (*partitions)[partition_count].id = i;
-        (*partitions)[partition_count].drive = grab_drive(drive);
+        (*partitions)[partition_count].drive = &os.drives[drive];
         (*partitions)[partition_count].start = mbr[i].partition_start;
         (*partitions)[partition_count].size  = mbr[i].partition_size;
 

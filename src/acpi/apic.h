@@ -13,9 +13,9 @@ struct APIC
     uint8_t non_maskable_interrupts_count;
 
     struct ProcessorLocalAPIC* cpu_apics[8];
-    struct IOAPIC* ioapics[8];
+    struct IOAPIC* io_apics[8];
     struct InterruptSourceOverride* interrupt_source_override[8];
     struct NonMaskableInterrupts* non_maskable_interrupts[8];
 };
 
-void initAPIC(struct MADT_SDT* madt);
+void apic_init(struct MADT_SDT* madt);

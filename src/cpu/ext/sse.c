@@ -12,7 +12,7 @@ void sse_enable(void)
         return;
     }
 
-    cr0_set(CR0_EM); // enable emulation
+    cr0_clear(CR0_EM); // enable emulation
     cr4_set(CR4_OXFXSR | CR4_OSXMMEXCPT); // enable sse -> fxsave + fxrstor | exceptions
 
     printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");

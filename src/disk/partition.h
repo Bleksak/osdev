@@ -1,4 +1,8 @@
 #pragma once
+
+struct Partition;
+typedef struct Partition Partition;
+
 #include "ata.h"
 
 struct Partition {
@@ -7,8 +11,6 @@ struct Partition {
     unsigned int start;
     unsigned int size;
 };
-
-typedef struct Partition Partition;
 
 size_t partition_init_drive(uint32_t drive, Partition** partitions);
 

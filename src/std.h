@@ -27,10 +27,13 @@ typedef unsigned long ptrdiff_t;
  * 
  *******************************************************/
 
-#define true 1
-#define false 0
+// #define true 1
+// #define false 0
 
-typedef _Bool bool;
+typedef enum {
+    false,
+    true
+} bool;
 
 /*******************************************************
  * 

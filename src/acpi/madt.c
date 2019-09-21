@@ -4,22 +4,23 @@
 
 #include "../paging.h"
 
-bool initMADT(struct MADT_SDT* header)
+bool madt_init(struct MADT_SDT* header)
 {
-    if(!header)
+    if(!header) {
         return false;
+    }
     
-    if(!doChecksum((uint8_t*)header, header->SDT.Length))
+    if(!do_checksum((uint8_t*)header, header->sdt.length)) {
         return false;
-
-    if((((uintptr_t)header + header->SDT.Length) & ~0xFFF) != ((uintptr_t)header & ~0xFFF))
-    {
-        const uintptr_t current_offset = getCurrentVirtualMemoryOffset();
-        map_page(get_physical_address((uintptr_t)header) + 0x1000, current_offset, Present);
-        setCurrentVirtualMemoryOffset(current_offset + 0x1000);
     }
 
-    initAPIC(header);
+    if((((uintptr_t)header + header->sdt.length) & ~0xFFF) != ((uintptr_t)header & ~0xFFF)) {
+        const uintptr_t current_offset = mem_offset_get();
+        map_page(get_physical_address((uintptr_t)header) + 0x1000, current_offset, Present);
+        mem_offset_set(current_offset + 0x1000);
+    }
+
+    apic_init(header);
 
     return true;
 }

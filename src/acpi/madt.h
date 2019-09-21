@@ -51,26 +51,26 @@ struct LocalAPICAddressOverride
 
 struct MADT_Entry
 {
-    uint8_t Type;
-    uint8_t Length;
+    uint8_t type;
+    uint8_t length;
 
     union
     {
-        struct ProcessorLocalAPIC ProcessorLocalAPIC;
-        struct IOAPIC IOAPIC;
-        struct InterruptSourceOverride InterruptSourceOverride;
-        struct NonMaskableInterrupts NonMaskableInterrupts;
-        struct LocalAPICAddressOverride LocalAPICAddressOverride;
+        struct ProcessorLocalAPIC lapic;
+        struct IOAPIC io_apic;
+        struct InterruptSourceOverride interrupt_source_override;
+        struct NonMaskableInterrupts non_maskable_interrupt;
+        struct LocalAPICAddressOverride lapic_addr_override;
     };
 } PACKED;
 
 struct MADT_SDT
 {
-    struct SDT_Header SDT;
-    uint32_t LocalApicAddress;
-    uint32_t Flags;
+    struct SDT_Header sdt;
+    uint32_t lapic_addr;
+    uint32_t flags;
 
     struct MADT_Entry entries;
 } PACKED;
 
-bool initMADT(struct MADT_SDT* header);
+bool madt_init(struct MADT_SDT* header);

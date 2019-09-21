@@ -62,22 +62,17 @@ static void* alloc(alloc_t* block, size_t size) {
 
 	alloc_t* new = (alloc_t*)((size_t)block + size);
 
-	if(block->prev)
+	if(block->prev) {
 		block->prev->next = block->next;
+	}
 	
-	if(block->next)
+	if(block->next){
 		block->next->prev = block->prev;
+	}
 
 	new->prev_phys = block;
 
 	new->size = block->size - size;
-
-	/*
-		|ALLOCED| |FREE| |ALLOCED|
-		|KEEP   | |KEEP| |FREE THIS|
-		shrinks to
-		|ALLOCED| |FREE|
-	*/
 
 	block->size = size;
 	block->free = false;
@@ -140,10 +135,15 @@ void* malloc(size_t size)
 
 void free(void* address)
 {
-	if(!address)
+	if(!address) {
 		return;
+	}
 	
 	alloc_t* block = ((alloc_t*)address - 1);
+
+	if(block->free) {
+		return;
+	}
 	
 	used_memory -= block->size;
 	free_memory += block->size;
@@ -274,18 +274,19 @@ void* calloc(size_t count, size_t size) {
 	return addr;
 }
 
-void* realloc(void* base, size_t new_size) {
-	if(!new_size) {
+void* realloc(void* base, size_t size) {
+	if(!size) {
+		free(base);
 		return 0;
 	}
 
 	if(!base) {
-		return malloc(new_size);
+		return malloc(size);
 	}
 
 	alloc_t* block = ((alloc_t*)base - 1);
 
-	new_size = align(new_size + sizeof(alloc_t), sizeof(alloc_t));
+	const size_t new_size = align(size + sizeof(alloc_t), sizeof(alloc_t));
 
 	if(block->size == new_size) {
 		return base;
@@ -296,12 +297,45 @@ void* realloc(void* base, size_t new_size) {
 		return base;
 	}
 
+	alloc_t* next_alloc = (alloc_t*) ((uintptr_t)block + block->size);
+	const long long new_alloc_size = (block->size + next_alloc->size) - new_size;
+
+	if(next_alloc->free && new_alloc_size >= 0) {
+		if(next_alloc->next) {
+			next_alloc->next->prev = next_alloc->prev;
+		}
+
+		if(next_alloc->prev) {
+			next_alloc->prev->next = next_alloc->next;
+		}
+
+		if(new_alloc_size <= (2 * sizeof(alloc_t))) {
+			block->size += new_alloc_size;
+			return (void*) (block + 1);
+		}
+
+		block->size = new_size;
+
+		alloc_t* new_created_malloc = (alloc_t*) ((uintptr_t)block + (uintptr_t)block->size);
+		new_created_malloc->size = new_alloc_size;
+		new_created_malloc->free = true;
+		new_created_malloc->next = free_allocs;
+		new_created_malloc->prev = 0;
+		free_allocs->prev = new_created_malloc;
+		free_allocs = new_created_malloc;
+
+		return (void*) (block + 1);
+	}
+
+	void* new_block = malloc(new_size);
 	
+	if(!new_block) {
+		return 0;
+	}
 
-	/*
-		block size is lower than requested, need to reallocate
-	*/
+	memcpy(new_block, block, block->size);
 
-	return 0;
+	free(block);
 
+	return (void*) (new_block + 1);
 }
