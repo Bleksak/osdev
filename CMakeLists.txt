@@ -7,7 +7,7 @@ set(CMAKE_ASM_NASM_LINK_EXECUTABLE "i686-elf-gcc <LINK_FLAGS> <OBJECTS> -o <TARG
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
 enable_language(ASM_NASM)
 
-set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
+# set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir/boot)

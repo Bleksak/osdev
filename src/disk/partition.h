@@ -1,5 +1,6 @@
 #pragma once
 #include "ata.h"
+#include "../std.h"
 
 struct Partition {
     unsigned char id;
