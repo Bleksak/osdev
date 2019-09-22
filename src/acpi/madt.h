@@ -4,8 +4,7 @@
 #include "../attributes.h"
 
 
-enum MADT_Entries
-{
+enum MADT_Entries {
     ProcessorLocalAPIC,
     IOAPIC,
     InterruptSourceOverride,
@@ -13,49 +12,42 @@ enum MADT_Entries
     LocalAPICAddressOverride = 5,
 };
 
-struct ProcessorLocalAPIC // Entry type 0 
-{
+struct ProcessorLocalAPIC { // Entry type 0 
     uint8_t ACPIProcessorID;
     uint8_t APICID;
     uint32_t Flags;
 } PACKED;
 
-struct IOAPIC // Entry type 1
-{
+struct IOAPIC { // Entry type 1
     uint8_t IOAPICID;
     uint8_t Reserved;
     uint32_t IOAPICAddress;
     uint32_t GlobalSystemInterruptBase;
 } PACKED;
 
-struct InterruptSourceOverride
-{
+struct InterruptSourceOverride {
     uint8_t BusSource;
     uint8_t IRQSource;
     uint32_t GlobalSystemInterrupt;
     uint16_t Flags;
 } PACKED;
 
-struct NonMaskableInterrupts
-{
+struct NonMaskableInterrupts {
     uint8_t ACPIProcessorID; // 0xFF => all CPUs
     uint16_t Flags;
     uint8_t LINT; // 0 or 1
 } PACKED;
 
-struct LocalAPICAddressOverride 
-{
+struct LocalAPICAddressOverride  {
     uint16_t reserved;
     uint64_t address;
 } PACKED;
 
-struct MADT_Entry
-{
+struct MADT_Entry {
     uint8_t type;
     uint8_t length;
 
-    union
-    {
+    union {
         struct ProcessorLocalAPIC lapic;
         struct IOAPIC io_apic;
         struct InterruptSourceOverride interrupt_source_override;
@@ -64,9 +56,8 @@ struct MADT_Entry
     };
 } PACKED;
 
-struct MADT_SDT
-{
-    const struct SDT_Header sdt;
+struct MADT_SDT {
+    const struct SDT sdt;
     const uint32_t lapic_addr;
     const uint32_t flags;
 

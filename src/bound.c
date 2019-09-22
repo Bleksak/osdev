@@ -18,10 +18,10 @@ bool bound(uintptr_t start, uintptr_t end, uintptr_t start_addr, uintptr_t end_a
     return true;
 }
 
-bool bound_s(uintptr_t start, uintptr_t end, uintptr_t addr) {   
-    if(start < addr) {
-        return (end >= addr);
-    }
+// bool bound_s(uintptr_t start, uintptr_t end, uintptr_t addr) {   
+//     if(start < addr) {
+//         return (end >= addr);
+//     }
 
-    return true;
-}
+//     return true;
+// }

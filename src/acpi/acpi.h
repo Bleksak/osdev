@@ -1,7 +1,7 @@
 #pragma once
 #include "../std.h"
 
-struct SDT_Header {
+struct SDT {
     char signature[4];
     uint32_t length;
     uint8_t revision;

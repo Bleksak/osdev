@@ -5,9 +5,9 @@
 
 struct OS {
     Drive* drives;
-    // struct {
-        
-    // } acpi;
+    struct {
+        struct SDT* sdt;
+    } acpi;
 };
 
 typedef struct OS OS;

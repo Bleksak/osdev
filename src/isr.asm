@@ -38,7 +38,7 @@ global isr31
 extern isr_handler
 
 isr_common_stub:
-    pusha
+    pushad
     push ds
     push es
     push fs
@@ -48,16 +48,14 @@ isr_common_stub:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    mov eax, esp   ; Push us the stack
-    push eax
-    mov eax, isr_handler
-    call eax       ; A special call, preserves the 'eip' register
-    pop eax
+    push esp
+    call isr_handler
+    pop esp
     pop gs
     pop fs
     pop es
     pop ds
-    popa
+    popad
     add esp, 8     ; Cleans up the pushed error code and pushed ISR number
     iret           ; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP!
 
@@ -65,186 +63,186 @@ isr_common_stub:
 isr0:
     cli
 
-    push byte 0
-    push byte 0
+    push dword 0
+    push dword 0
 
     jmp isr_common_stub
 isr1:
     cli
-    push byte 0
-    push byte 1
+    push dword 0
+    push dword 1
 
     jmp isr_common_stub
 isr2:
     cli
-    push byte 0
-    push byte 2
+    push dword 0
+    push dword 2
 
     jmp isr_common_stub
 isr3:
     cli
-    push byte 0
-    push byte 3
+    push dword 0
+    push dword 3
 
     jmp isr_common_stub
 isr4:
     cli
-    push byte 0
-    push byte 4
+    push dword 0
+    push dword 4
 
     jmp isr_common_stub
 isr5:
     cli
-    push byte 0
-    push byte 5
+    push dword 0
+    push dword 5
 
     jmp isr_common_stub
 isr6:
     cli
-    push byte 0
-    push byte 6
+    push dword 0
+    push dword 6
 
     jmp isr_common_stub
 isr7:
     cli
-    push byte 0
-    push byte 7
+    push dword 0
+    push dword 7
 
     jmp isr_common_stub
 isr8:
     cli
-    push byte 8
+    push dword 8
 
     jmp isr_common_stub
 isr9:
     cli
-    push byte 0
-    push byte 9
+    push dword 0
+    push dword 9
 
     jmp isr_common_stub
 isr10:
     cli
-    push byte 10
+    push dword 10
 
     jmp isr_common_stub
 isr11:
     cli
-    push byte 11
+    push dword 11
 
     jmp isr_common_stub
 isr12:
     cli
-    push byte 12
+    push dword 12
 
     jmp isr_common_stub
 isr13:
     cli
-    push byte 13
+    push dword 13
 
     jmp isr_common_stub
 isr14:
     cli
-    push byte 14
+    push dword 14
 
     jmp isr_common_stub
 isr15:    cli
-    push byte 0
-    push byte 15
+    push dword 0
+    push dword 15
 
     jmp isr_common_stub
 isr16:
     cli
-    push byte 0
-    push byte 16
+    push dword 0
+    push dword 16
 
     jmp isr_common_stub
 isr17:
     cli
-    push byte 0
-    push byte 17
+    push dword 0
+    push dword 17
 
     jmp isr_common_stub
 isr18:
     cli
-    push byte 0
-    push byte 18
+    push dword 0
+    push dword 18
 
     jmp isr_common_stub
 isr19:
     cli
-    push byte 0
-    push byte 19
+    push dword 0
+    push dword 19
 
     jmp isr_common_stub
 isr20:
     cli
-    push byte 0
-    push byte 20
+    push dword 0
+    push dword 20
 
     jmp isr_common_stub
 isr21:
     cli
-    push byte 0
-    push byte 21
+    push dword 0
+    push dword 21
 
     jmp isr_common_stub
 isr22:
     cli
-    push byte 0
-    push byte 22
+    push dword 0
+    push dword 22
 
     jmp isr_common_stub
 isr23:
     cli
-    push byte 0
-    push byte 23
+    push dword 0
+    push dword 23
 
     jmp isr_common_stub
 isr24:
     cli
-    push byte 0
-    push byte 24
+    push dword 0
+    push dword 24
 
     jmp isr_common_stub
 isr25:
     cli
-    push byte 0
-    push byte 25
+    push dword 0
+    push dword 25
 
     jmp isr_common_stub
 isr26:
     cli
-    push byte 0
-    push byte 26
+    push dword 0
+    push dword 26
 
     jmp isr_common_stub
 isr27:
     cli
-    push byte 0
-    push byte 27
+    push dword 0
+    push dword 27
 
     jmp isr_common_stub
 isr28:
     cli
-    push byte 0
-    push byte 28
+    push dword 0
+    push dword 28
 
     jmp isr_common_stub
 isr29:
     cli
-    push byte 0
-    push byte 29
+    push dword 0
+    push dword 29
 
     jmp isr_common_stub
 isr30:
     cli
-    push byte 0
-    push byte 30
+    push dword 0
+    push dword 30
 
     jmp isr_common_stub
 isr31:
     cli
-    push byte 0
-    push byte 31
+    push dword 0
+    push dword 31
 
     jmp isr_common_stub

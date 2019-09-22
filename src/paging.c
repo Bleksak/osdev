@@ -86,6 +86,11 @@ static bool paging_check_virtual_bounds(uintptr_t address) {
 	return false;
 }
 
+static void map_page_local(uintptr_t physical, uintptr_t virtual) {
+	page_directory[virtual >> 22] |= 3;
+    page_table[virtual >> 22][(virtual >> 12) & 0x3ff] = (physical & ~0xFFF) | Present;
+}
+
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 	memset(page_bitmap, 0xFF, sizeof(page_bitmap));
 	memset(superpage_bitmap, 0xFF, sizeof(superpage_bitmap));
@@ -133,7 +138,7 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 					continue;
 				}
 				
-				map_page(physical_address, virtual_address, Present | ReadWrite);
+				map_page_local(physical_address, virtual_address);
 
 				const uintptr_t page = virtual_address >> 12;
 
@@ -148,6 +153,8 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 		mmap = (multiboot_memory_map_t*) ((uintptr_t)mmap + mmap->size + sizeof(mmap->size));
 		(*counter)++;
 	}
+
+	flush_tlb();
 
 	heap_init();
 }
