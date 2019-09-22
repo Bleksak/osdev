@@ -6,10 +6,10 @@
 // Include all other possible SDT pointers
 #include "madt.h"
 
-static uint32_t AcpiCapabilities = 0;
+static uint32_t acpi_capabilities = 0;
 
-PURE uint32_t get_acpi_capabilities(void) {
-    return AcpiCapabilities;
+uint32_t acpi_get_capabilities(void) {
+    return acpi_capabilities;
 }
 
 enum SDT_HeaderEnum
@@ -41,12 +41,12 @@ enum SDT_HeaderEnum
 
 struct AcpiSDTHeader {
     struct SDT_Header header;
-    uint32_t next_sdt[];
+    uintptr_t next_sdt[];
 } PACKED;
 
 #include "../console.h"
 
-inline bool do_checksum(uint8_t* ptr, size_t len) {
+inline bool do_checksum(const uint8_t* ptr, size_t len) {
     uint8_t checksum = 0;
 
     for(size_t i = 0; i < len; ++i) {
@@ -56,22 +56,26 @@ inline bool do_checksum(uint8_t* ptr, size_t len) {
     return (checksum == 0);
 }
 
-static const struct SDT_Header* acpi_find_table(struct AcpiSDTHeader* table, const size_t entry_count, const uint32_t name) {
+static const void* acpi_find_table(struct AcpiSDTHeader* table, const size_t entry_count, const uint32_t name) {
     for(size_t i = 0; i < entry_count; ++i) {
         if(*(uint32_t*)table->next_sdt[i] == name) {
             const struct SDT_Header* found = (const struct SDT_Header*) table->next_sdt[i];
-            if(do_checksum((uint8_t*)found, found->length)) {
+            if(do_checksum((const uint8_t*)found, found->length)) {
                 return found;
             }
         }
     }
 
-
     return 0;
 }
 
-static void setAcpiCapabilities(enum ACPI_Capabilities cap) {
-    AcpiCapabilities |= cap;
+// static size_t loop_table() {
+
+// }
+
+
+static void acpi_set_capabilities(enum ACPI_Capabilities cap) {
+    acpi_capabilities |= cap;
 }
 
 bool acpi_init(void) {
@@ -106,22 +110,21 @@ bool acpi_init(void) {
         return false;
     }
 
-    uintptr_t mem_offset = mem_offset_get();
     const uintptr_t addr = (rsdp->v1.revision == 0) ? rsdp->v1.rsdt_address : rsdp->v2.xsdt_address;
-
-    ptrdiff_t acpi_offset = map_page(addr, mem_offset, Present | ReadWrite);
-
-    mem_offset_set(mem_offset + 0x1000);
-
-    struct AcpiSDTHeader* acpi_sdt = (struct AcpiSDTHeader*)(mem_offset + acpi_offset);
-
-    mem_offset += 0x1000;
+    
+    struct AcpiSDTHeader* acpi_sdt = MAP_SIZE(addr, sizeof(struct AcpiSDTHeader), Present | ReadWrite);
 
     if(!do_checksum((uint8_t*)acpi_sdt, acpi_sdt->header.length)) {
         return false;
     }
 
     const size_t entry_count = (acpi_sdt->header.length - sizeof(struct AcpiSDTHeader)) >> ((rsdp->v1.revision == 0) ? 2 : 3);
+
+    const uintptr_t mem_start = mem_offset_get();
+
+    for(size_t i = 0; i < entry_count; ++i) {
+        uintptr_t current_ptr = ...
+    }
 
     uintptr_t current_addr = acpi_sdt->next_sdt[0] & ~0xFFF;
     acpi_sdt->next_sdt[0] = mem_offset + map_page(acpi_sdt->next_sdt[0], mem_offset, Present);
@@ -148,8 +151,11 @@ bool acpi_init(void) {
 
     mem_offset_set(mem_offset + 0x1000);
 
-    if(madt_init((struct MADT_SDT*)acpi_find_table(acpi_sdt, entry_count, SDT_HeaderStringTable[MADT]))) {
-        setAcpiCapabilities(ACPI_MADT);
+    const void* madt = acpi_find_table(acpi_sdt, entry_count, SDT_HeaderStringTable[MADT]);
+    if(madt) {
+        if(madt_init(madt)) {
+            acpi_set_capabilities(ACPI_MADT);
+        }
     }
 
     return true;

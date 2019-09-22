@@ -9,12 +9,7 @@
 const struct BiosDataArea* bda;
 
 void bda_init(void) {
-    const uintptr_t virtual_offset = mem_offset_get();
-    map_page(0, virtual_offset, Present);
-    mem_offset_set(virtual_offset + 0x1000);
-
-    bda = (const struct BiosDataArea*)virtual_offset;
-
+    bda = map_size(0, sizeof(struct BiosDataArea), Present);
     ebda_init(bda->ExtendedBDAPtr * 0x10);
 }
 

@@ -1,12 +1,11 @@
 #include "partition.h"
 #include "../console.h"
 #include "../memory.h"
-
 #include "../attributes.h"
-
 #include "../mheap.h"
-
 #include "../os.h"
+#include "../paging.h"
+
 
 extern OS os;
 
@@ -36,15 +35,15 @@ static uint64_t checksum(const struct MBRPartition* partition) {
     return checksum;
 }
 
-size_t partition_init_drive(uint32_t drive, Partition** partitions) { // returns the partition count
-    Result res = ata_read(&os.drives[drive], 0, 1);
+size_t partition_init_drive(const Drive* drive) { // returns the partition count
+    Result res = ata_read(drive, 0, 1);
+
     if(!res.ok) {
         return 0;
     }
 
     const struct MBRPartition* mbr = (void*) ((uintptr_t)res.result + MBR_OFFSET);
     size_t partition_count = 0;
-    *partitions = 0;
 
     for(size_t i = 0; i < 4; ++i) {
         if(checksum(mbr) == 0) {
@@ -62,12 +61,16 @@ size_t partition_init_drive(uint32_t drive, Partition** partitions) { // returns
         if(!mbr[i].system_id) {
             continue;
         }
+        /*
+            null ptr
+            => mem_get_offset()
 
-        *partitions = realloc(*partitions, sizeof(Partition) * (partition_count + 1));
-        (*partitions)[partition_count].id = i;
-        (*partitions)[partition_count].drive = &os.drives[drive];
-        (*partitions)[partition_count].start = mbr[i].partition_start;
-        (*partitions)[partition_count].size  = mbr[i].partition_size;
+        */
+        // *partitions = realloc(*partitions, sizeof(Partition) * (partition_count + 1));
+        // (*partitions)[partition_count].id = i;
+        // (*partitions)[partition_count].drive = &os.drives[drive];
+        // (*partitions)[partition_count].start = mbr[i].partition_start;
+        // (*partitions)[partition_count].size  = mbr[i].partition_size;
 
         partition_count++;
     }

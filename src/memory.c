@@ -10,7 +10,9 @@ static size_t min(size_t a, size_t b) {
 }
 
 static size_t sse_alignment(uintptr_t address) {
-    return address & 15;
+    // a - (b & (a - 1))
+
+    return SSE_XMM_SIZE - (address & (SSE_XMM_SIZE - 1));
 }
 
 static void memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
@@ -20,6 +22,7 @@ static void memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
     size_t i = min(sse_alignment(dst_addr), len);
     
     __asm__ volatile("rep movsb" : "+D"(dst_addr), "+S"(src_addr) : "c"(i));
+
     __asm__ volatile("prefetchnta %0" :: "m"(src_addr));
     __asm__ volatile("prefetchnta %0" :: "m"(dst_addr));
 

@@ -2,6 +2,10 @@
 #include "../std.h"
 #include "../result.h"
 #include "../attributes.h"
+
+struct Drive;
+typedef struct Drive Drive;
+
 #include "partition.h"
 
 enum ATA_TYPE {
@@ -393,8 +397,6 @@ struct Drive {
         uint64_t ExtSectors;
     } data;
 };
-
-typedef struct Drive Drive;
 
 size_t ata_init(void);
 

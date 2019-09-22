@@ -5,9 +5,10 @@
 #include "mheap.h"
 #include "bound.h"
 #include "assert.h"
+#include "align.h"
 
 /*
-	BDA will be mapped at 0x01000000 or VIRTUAL_MEMORY_START
+	BDA will be mapped at VIRTUAL_MEMORY_START
 	EBDA will follow at VIRTUAL_MEMORY_START + 0x1000
 */
 
@@ -48,7 +49,7 @@ static void flush_tlb(void) {
 	);
 }
 
-extern size_t _kernel_phys_start, _kernel_phys_end, _kernel_virt_start, _kernel_virt_end;
+extern uintptr_t _kernel_phys_start, _kernel_phys_end, _kernel_virt_start, _kernel_virt_end;
 
 static uintptr_t virtual_memory_offset = VIRTUAL_MEMORY_START;
 
@@ -66,7 +67,7 @@ static const BoundPair virtual_bound_checks[] = {
 };
 
 static bool paging_check_physical_bounds(uintptr_t address) {
-	for(size_t i = 0; i < (sizeof(physical_bound_checks) / sizeof(physical_bound_checks[0])); ++i) {
+	for(uintptr_t i = 0; i < (sizeof(physical_bound_checks) / sizeof(physical_bound_checks[0])); ++i) {
 		if(bound(physical_bound_checks[i].start, physical_bound_checks[i].end, address, address + 0xFFF)) {
 			return true;
 		}
@@ -89,7 +90,7 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 	memset(page_bitmap, 0xFF, sizeof(page_bitmap));
 	memset(superpage_bitmap, 0xFF, sizeof(superpage_bitmap));
 
-	volatile uintptr_t virtual_address = PUBLIC_VIRTUAL_MEMORY_START;
+	uintptr_t virtual_address = PUBLIC_VIRTUAL_MEMORY_START;
 
 	multiboot_memory_map_t* mmap = (void*) mmap_addr;
 
@@ -139,8 +140,6 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 				page_unmark(page);
 				superpage_unmark(page);
 
-				// printf("%x\n", page_bitmap[page >> 5]);
-				
 				physical_address += 0x1000;
 				virtual_address += 0x1000;
 			}
@@ -161,6 +160,26 @@ ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags) {
 	return (ptrdiff_t)physical & 0xFFF;
 }
 
+void unmap_page(uintptr_t address) {
+	page_table[address >> 22][(address >> 12) & 0x3ff] = 0;
+	flush_tlb();
+}
+
+void* map_size(uintptr_t physical, size_t size, uint32_t flags) {
+	const size_t aligned_size = align(size, 0x1000);
+
+	const size_t phys_addr = physical & ~0xFFF;
+	const uintptr_t end = phys_addr + aligned_size;
+
+	void* return_address = (void*) virtual_memory_offset;
+
+	for(uintptr_t addr = phys_addr; addr < end; addr += 0x1000, virtual_memory_offset += 0x1000) {
+		map_page(addr, virtual_memory_offset, flags);
+	}
+
+	return return_address;
+}
+
 inline uintptr_t get_physical_address(uintptr_t virtual) {
     return (page_table[virtual >> 22][(virtual >> 12) & 0x3ff] & ~0xFFF) | (virtual & 0xfff);
 }
@@ -170,6 +189,5 @@ uintptr_t mem_offset_get(void) {
 }
 
 void mem_offset_set(uintptr_t address) {
-	assert(address < PUBLIC_VIRTUAL_MEMORY_START);
 	virtual_memory_offset = address;
 }

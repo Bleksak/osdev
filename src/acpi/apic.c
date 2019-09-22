@@ -114,52 +114,40 @@ static void lapic_startup(uint32_t apic_id, uint32_t vector) {
     while (read_reg(APIC_INTERRUPT_COMMAND_LOW_REGISTER) & ICR_SEND_PENDING);
 }
 
-void apic_init(struct MADT_SDT* madt) {
+void apic_init(const struct MADT_SDT* madt) {
     // Enumerate all entries
-    struct MADT_Entry* current_entry = &madt->entries;
+    const struct MADT_Entry* current_entry = &madt->entries;
 
-    apic.lapic_addr = madt->lapic_addr;
+    uintptr_t lapic_addr = madt->lapic_addr;
     apic.flags = madt->flags;
 
-    while((uintptr_t)current_entry < ((uintptr_t)madt + madt->sdt.length))
-    {
-        switch(current_entry->type)
-        {
-            case ProcessorLocalAPIC:
-            {
+    while((uintptr_t)current_entry < ((uintptr_t)madt + madt->sdt.length)) {
+        switch(current_entry->type) {
+            case ProcessorLocalAPIC: {
                 apic.cpu_apics[apic.cpu_count++] = &current_entry->lapic;
             } break;
 
-            case IOAPIC:
-            {
+            case IOAPIC: {
                 apic.io_apics[apic.ioapic_count++] = &current_entry->io_apic;
             } break;
 
-            case InterruptSourceOverride:
-            {
+            case InterruptSourceOverride: {
                 apic.interrupt_source_override[apic.interrupt_source_override_count++] = &current_entry->interrupt_source_override;
             } break;
 
-            case NonMaskableInterrupts:
-            {
+            case NonMaskableInterrupts: {
                 apic.non_maskable_interrupts[apic.non_maskable_interrupts_count++] = &current_entry->non_maskable_interrupt;
             } break;
 
-            case LocalAPICAddressOverride:
-            {
-                apic.lapic_addr = current_entry->lapic_addr_override.address;
+            case LocalAPICAddressOverride: {
+                lapic_addr = current_entry->lapic_addr_override.address;
             } break;
         }
-        
+
         current_entry = (struct MADT_Entry*)((uint32_t)current_entry + current_entry->length);
     }
 
-    const uintptr_t virt_offset = mem_offset_get();
-    const ptrdiff_t offset = map_page(apic.lapic_addr, virt_offset, Present | ReadWrite);
-
-    apic.lapic_addr = virt_offset + offset;
-
-    mem_offset_set(offset + 0x1000);
+    apic.lapic_addr = (uintptr_t) MAP_SIZE(lapic_addr, madt->sdt.length, Present | ReadWrite);
     
     __asm__ volatile("cli");
     pic_disable();
@@ -168,7 +156,6 @@ void apic_init(struct MADT_SDT* madt) {
     wrmsr(MSR_APIC, (rdmsr(MSR_APIC) & 0xfffff000) | 0x800);
     
     write_reg(0xF0, read_reg(0xF0) | 0x1FF);
-
     
 
     __asm__ volatile("sti");

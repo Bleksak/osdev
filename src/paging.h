@@ -9,6 +9,8 @@
 #define PUBLIC_VIRTUAL_MEMORY_START VIRTUAL_MEMORY_START + 0x4000000 // 64MiB reserved for OS
 #define MEM_ZERO_MAP VIRTUAL_MEMORY_START
 
+#define MAP_SIZE(phys, size, flags) (void*) ((uintptr_t)map_size((phys), (size), (flags)) + ((phys) & 0xFFF));
+
 #define KB 1024
 #define MB KB * 1024
 #define GB MB * 1024
@@ -33,5 +35,7 @@ void mem_offset_set(uintptr_t address);
 
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len);
 ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);
+
+void* map_size(uintptr_t physical, size_t size, uint32_t flags);
 uintptr_t get_physical_address(uintptr_t virtual);
 uintptr_t readCR3(void);

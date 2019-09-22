@@ -4,8 +4,7 @@
 
 #include "../paging.h"
 
-bool madt_init(struct MADT_SDT* header)
-{
+bool madt_init(const struct MADT_SDT* header) {
     if(!header) {
         return false;
     }

@@ -149,12 +149,7 @@ void irq_install(void) {
     keyboard_install();
 }
 
-interrupt_handler_t irq_handlers[16] = {
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-};
+static interrupt_handler_t irq_handlers[16] = {0};
 
 void irq_install_handler(unsigned int index, interrupt_handler_t handle) {
     irq_handlers[index] = handle;
@@ -165,15 +160,13 @@ void irq_remove_handler(unsigned int index) {
 }
 
 void irq_handler(struct registers* regs) {
-    void (*handle)(struct registers*) = irq_handlers[regs->interrupt - 32];
+    interrupt_handler_t handle = irq_handlers[regs->interrupt - 32];
 
-    if(handle)
-    {
+    if(handle) {
         handle(regs);
     }
 
-    if(regs->interrupt >= 40)
-    {
+    if(regs->interrupt >= 40) {
         outb(0xA0, 0x20);
     }
 

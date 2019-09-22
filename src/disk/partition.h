@@ -8,12 +8,12 @@ typedef struct Partition Partition;
 
 struct Partition {
     unsigned char id;
-    struct Drive* drive;
+    Drive* drive;
     unsigned int start;
     unsigned int size;
 };
 
-size_t partition_init_drive(uint32_t drive, Partition** partitions);
+size_t partition_init_drive(const Drive* drive);
 
 unsigned char partition_read(struct Partition* partition, unsigned int lba, unsigned short size, unsigned char* buffer);
 unsigned char partition_write(struct Partition* partition, unsigned int lba, unsigned short size, unsigned char* buffer);

@@ -4,6 +4,7 @@
 #include "../memory.h"
 #include "../mheap.h"
 #include "../os.h"
+#include "../paging.h"
 
 #define ATA_PRIMARY_IO_BASE 0x1f0
 #define ATA_PRIMARY_IO_CONTROL_BASE 0x3f6
@@ -278,8 +279,6 @@ static Result ata_actual_read(const Drive* drive, unsigned char count) {
 	if(!buffer) {
 		return Err("Out of memory");
 	}
-
-	
 
 	for(unsigned int i = 0; i < count; ++i) {
 		if(!ata_poll(drive)) {

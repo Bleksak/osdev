@@ -66,11 +66,11 @@ struct MADT_Entry
 
 struct MADT_SDT
 {
-    struct SDT_Header sdt;
-    uint32_t lapic_addr;
-    uint32_t flags;
+    const struct SDT_Header sdt;
+    const uint32_t lapic_addr;
+    const uint32_t flags;
 
-    struct MADT_Entry entries;
+    const struct MADT_Entry entries;
 } PACKED;
 
-bool madt_init(struct MADT_SDT* header);
+bool madt_init(const struct MADT_SDT* header);

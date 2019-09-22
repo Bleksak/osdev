@@ -40,5 +40,5 @@ enum ACPI_Capabilities {
 
 uint32_t acpi_get_capabilities(void);
 
-bool do_checksum(uint8_t* ptr, size_t len);
+bool do_checksum(const uint8_t* ptr, size_t len);
 bool acpi_init(void);
