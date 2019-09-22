@@ -98,3 +98,4 @@ NORETURN void kernel_main(multiboot_info_t* mbd)
         __asm__ volatile("hlt");
     }
 }
+

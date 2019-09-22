@@ -10,7 +10,8 @@ void avx_enable(void) {
 
     if(cpu_has_feature(CPUID_FEAT_AVX | CPUID_FEAT_XSAVE)) {
         xcr0_set(XCR0_XSAVE);
-        return printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");
+        printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");
+        return;
     }
     
     printf_colored(VGA_COLOR_RED, VGA_COLOR_BLACK, "Failed");
@@ -41,7 +42,8 @@ void avx_512_enable(void) {
     for (uint32_t i = 0; i < sizeof(flags)/sizeof(flags[0]); ++i) {
         if(cpu_has_ext_feature(flags[i])) {
             xcr0_set(XCR0_AVX512_OPMASK | XCR0_AVX512_ZMM | XCR0_AVX512_ZMM_HI);
-            return printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");
+            printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");
+            return;
         }
     }
 

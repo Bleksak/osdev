@@ -2,8 +2,7 @@
 #include "isr.h"
 #include "console.h"
 
-static unsigned char kbdus[128] =
-{
+static unsigned char kbdus[128] = {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
   '9', '0', '-', '=', '\b',	/* Backspace */
   '\t',			/* Tab */
@@ -60,7 +59,6 @@ void keyboard_handle(struct registers* regs)
     }
 }
 
-void keyboard_install(void)
-{
+void keyboard_install(void) {
     irq_install_handler(1, keyboard_handle);
 }

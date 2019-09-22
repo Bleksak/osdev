@@ -23,8 +23,7 @@ extern void irq14();
 extern void irq15();
 
 
-static char* exception_messages[32] = 
-{
+static char* exception_messages[32] = {
     "Division By Zero",
     "Debug",
     "Non Maskable Interrupt",
@@ -81,25 +80,21 @@ enum ISR {
 };
 
 
-void isr_handler(struct registers* regs)
-{
+void isr_handler(struct registers* regs) {
     printf("%s\n", exception_messages[regs->interrupt]);    
 }
 
-void pic_enable(void)
-{
+void pic_enable(void) {
     outb(0x21, 0x0); // enable all IRQs on PICM
     outb(0xA1, 0x0); // enable all IRQs on PICS
 }
 
-void pic_disable(void)
-{
+void pic_disable(void) {
     outb(0x21, 0xFF); // disable all IRQs on PICM
     outb(0xA1, 0xFF); // disable all IRQs on PICS
 }
 
-void irq_install(void)
-{
+void irq_install(void) {
     outb(0x20, 0x11); // write ICW1 to PICM
     outb(0xA0, 0x11); // write ICW1 to PICS
 
@@ -154,26 +149,22 @@ void irq_install(void)
     keyboard_install();
 }
 
-void* irq_handlers[16] = 
-{
+interrupt_handler_t irq_handlers[16] = {
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
 };
 
-void irq_install_handler(unsigned int index, void* handle)
-{
+void irq_install_handler(unsigned int index, interrupt_handler_t handle) {
     irq_handlers[index] = handle;
 }
 
-void irq_remove_handler(unsigned int index)
-{
+void irq_remove_handler(unsigned int index) {
     irq_handlers[index] = 0;
 }
 
-void irq_handler(struct registers* regs)
-{
+void irq_handler(struct registers* regs) {
     void (*handle)(struct registers*) = irq_handlers[regs->interrupt - 32];
 
     if(handle)

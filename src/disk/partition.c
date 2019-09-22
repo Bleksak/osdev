@@ -42,7 +42,7 @@ size_t partition_init_drive(uint32_t drive, Partition** partitions) { // returns
         return 0;
     }
 
-    const struct MBRPartition* mbr = res.result + MBR_OFFSET;
+    const struct MBRPartition* mbr = (void*) ((uintptr_t)res.result + MBR_OFFSET);
     size_t partition_count = 0;
     *partitions = 0;
 

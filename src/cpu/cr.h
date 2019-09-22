@@ -2,6 +2,10 @@
 
 #include "../std.h"
 
+#define MSR_EFER 0xC0000080
+#define MSR_XSS  0x0DA0
+#define MSR_APIC 0x1B
+
 enum CR0 {
     CR0_PE = 1 << 0,  // Protected mode enable
     CR0_MP = 1 << 1,  // Monitor co-processor
@@ -38,12 +42,6 @@ enum CR4 {
     CR4_SMEP       = 1 << 20,
     CR4_SMAP       = 1 << 21,
     CR4_PKE        = 1 << 22,
-};
-
-enum MSR_ADDRESSES {
-    MSR_EFER = 0xC0000080,
-    MSR_XSS  = 0x0DA0,
-    MSR_APIC = 0x1B,
 };
 
 enum XCR0 {

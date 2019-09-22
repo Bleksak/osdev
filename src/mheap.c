@@ -327,7 +327,7 @@ void* realloc(void* base, size_t size) {
 		return (void*) (block + 1);
 	}
 
-	void* new_block = malloc(new_size);
+	alloc_t* new_block = malloc(new_size);
 	
 	if(!new_block) {
 		return 0;

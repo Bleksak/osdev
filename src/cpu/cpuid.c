@@ -47,11 +47,11 @@ struct CPUID* get_cpu_info(void) {
     return &cpu;
 }
 
-bool cpu_has_feature(enum CPUID_FEATURES feature) {
+bool cpu_has_feature(uint64_t feature) {
     return (cpu.features[feature / 32] & (feature % 32)) == (feature % 32);
 }
 
-bool cpu_has_ext_feature(enum CPUID_EXT_FEATURES feature) {
+bool cpu_has_ext_feature(uint64_t feature) {
     return (cpu.ext_features[feature / 32] & (feature % 32)) == (feature % 32);
 }
 

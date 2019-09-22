@@ -153,9 +153,9 @@ uint64_t xcr0_get(uint64_t mask) {
 }
 
 void xcr0_set(uint64_t mask) {
-    return xcr_write(0, mask);
+    xcr_write(0, mask);
 }
 
 void xcr0_clear(uint64_t mask) {
-    return xcr_clear(0, mask);
+    xcr_clear(0, mask);
 }

@@ -83,8 +83,6 @@ add_executable(kernel.elf
     src/cpu/ext/fpu.asm
     src/cpu/ext/fpu.c
     src/cpu/ext/fpu.h
-    src/cpu/ext/mmx.c
-    src/cpu/ext/mmx.h
     src/cpu/ext/sse.c
     src/cpu/ext/sse.h
     src/cpu/ext/xsave.c
@@ -94,14 +92,9 @@ add_executable(kernel.elf
     src/cpu/cpuid.h
     src/cpu/cr.c
     src/cpu/cr.h
-
-    src/disk/fs/fs.c
-    src/disk/fs/fs.h
     
     src/disk/ata.c
     src/disk/ata.h
-    src/disk/dma.c
-    src/disk/dma.h
     src/disk/partition.c
     src/disk/partition.h
 

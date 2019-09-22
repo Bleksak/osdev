@@ -32,7 +32,6 @@ static void memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
 
         src_addr += 16;
         dst_addr += 16;
-
     }
 
     __asm__ volatile("rep movsb" :: "D"(dst_addr), "S"(src_addr), "c"(len - i));
@@ -55,6 +54,7 @@ static void memset_classic(void* restrict dest, int c, size_t len) {
 
 static void memclr_sse2(const void * restrict const dest, const size_t len) {
     uintptr_t address = (uintptr_t) dest;
+    uintptr_t end = address + len;
 
     size_t i = min(sse_alignment(address), len);
 
@@ -62,7 +62,7 @@ static void memclr_sse2(const void * restrict const dest, const size_t len) {
     __asm__ volatile("pxor %xmm0, %xmm0");
     __asm__ volatile("prefetchnta %0" :: "m"(address));
 
-    for(; (i + 64) <= len; address += 64) {
+    for(; (address + 64) <= end; address += 64) {
         __asm__ volatile("movdqa %%xmm0, 0(%0)\n"
                      "\tmovdqa %%xmm0, 16(%0)\n"
                      "\tmovdqa %%xmm0, 32(%0)\n"
@@ -70,13 +70,17 @@ static void memclr_sse2(const void * restrict const dest, const size_t len) {
                      :: "r"(address));
     }
 
-    return memset_classic((void*)address, 0, len - i);
+    memset_classic((void*)address, 0, end - address);
 }
 
 void memset(void* restrict dest, int c, size_t len) {
-    return (cpu_has_feature(CPUID_FEAT_SSE) && c == 0) 
-        ? memclr_sse2(dest, len) 
-        : memset_classic(dest, c, len);
+    if (cpu_has_feature(CPUID_FEAT_SSE) && c == 0) {
+        memclr_sse2(dest, len);
+    }
+    
+    else {
+        memset_classic(dest, c, len);
+    }
 }
 
 static void memcpy_classic(void* restrict dest, void* restrict src, size_t len) {
@@ -99,18 +103,18 @@ void memcpy(void* restrict dest, void* restrict src, size_t len) {
         return;
 
     if(cpu_has_feature(CPUID_FEAT_SSE)) {
-        return memcpy_sse2(dest, src, len);
+        memcpy_sse2(dest, src, len);
+        return;
     }
 
-    return memcpy_classic(dest, src, len);
+    memcpy_classic(dest, src, len);
 }
 
 bool memcmp(void* restrict dest, void* restrict src, size_t len) {
     uint8_t* _dest = (uint8_t*) dest;
     uint8_t* _src = (uint8_t*) src;
 
-    for(size_t i = 0; i<len; ++i)
-    {
+    for(size_t i = 0; i<len; ++i) {
         if(_dest[i] != _src[i])
             return false;
     }
