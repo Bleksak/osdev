@@ -9,6 +9,6 @@ unsigned char inb(unsigned short port);
 unsigned short inw(unsigned short port);
 unsigned int inl(unsigned short port);
 
-void MmioWrite32(void *p, uint32_t data);
+void MmioWrite32(volatile void *p, volatile uint32_t data);
 
-uint32_t MmioRead32(void *p);
+uint32_t MmioRead32(volatile void *p);

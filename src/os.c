@@ -1,3 +1,3 @@
 #include "os.h"
 
-struct OS os;
+struct OS os = {0};

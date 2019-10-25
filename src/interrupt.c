@@ -379,6 +379,40 @@ IDTEntry idt[256] = {
     },
 };
 
+static char* exception_messages[32] = {
+    "Division By Zero",
+    "Debug",
+    "Non Maskable Interrupt",
+    "Breakpoint Exception",
+    "Into Detected Overflow Exception",
+    "Out of Bounds Exception",
+    "Invalid Opcode Exception",
+    "No Coprocessor Exception",
+    "Double Fault Exception",
+    "Coprocessor Segment Overrun Exception",
+    "Bad TSS Exception",
+    "Segment Not Present Exception",
+    "Stack Fault Exception",
+    "General Protection Fault Exception",
+    "Page Fault Exception",
+    "Unknown Interrupt Exception",
+    "Coprocessor Fault Exception",
+    "Alignment Check Exception",
+    "Machine Check Exception",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+};
+
 void interrupt_set_base(unsigned int index, unsigned int base) {
     idt[index].base_high = (base >> 16) & 0xFFFF;
     idt[index].base_low = base & 0xFFFF;
@@ -397,40 +431,60 @@ static void lidt(const IDT* idtr) {
     __asm__ volatile("lidt (%0)" :: "r"(idtr));
 }
 
+struct ExceptionRegisters {
+    unsigned int gs, fs, es, ds;      /* pushed the segs last */
+    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
+    unsigned int code, error_code;
+    unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
+};
+
+void isr_handler(const struct ISRRegisters* registers) {
+    switch(registers->code) {
+        default: {
+            panic("An ISR caused the kernel to hang: %s\n", registers->code);
+        } break;
+    }
+}
+
+void exception_handler(const struct ExceptionRegisters* registers) {
+    panic("An exception caused the kernel to hang: %s\nError code: %x\n", exception_messages[registers->code], registers->error_code);
+}
+
 void idt_install(void) {
-    interrupt_set_base(0,  (uintptr_t)isr0);
-    interrupt_set_base(1,  (uintptr_t)isr1);
-    interrupt_set_base(2,  (uintptr_t)isr2);
-    interrupt_set_base(3,  (uintptr_t)isr3);
-    interrupt_set_base(4,  (uintptr_t)isr4);
-    interrupt_set_base(5,  (uintptr_t)isr5);
-    interrupt_set_base(6,  (uintptr_t)isr6);
-    interrupt_set_base(7,  (uintptr_t)isr7);
-    interrupt_set_base(8,  (uintptr_t)isr8);
-    interrupt_set_base(9,  (uintptr_t)isr9);
-    interrupt_set_base(10, (uintptr_t)isr10);
-    interrupt_set_base(11, (uintptr_t)isr11);
-    interrupt_set_base(12, (uintptr_t)isr12);
-    interrupt_set_base(13, (uintptr_t)isr13);
-    interrupt_set_base(14, (uintptr_t)isr14);
-    interrupt_set_base(15, (uintptr_t)isr15);
-    interrupt_set_base(16, (uintptr_t)isr16);
-    interrupt_set_base(17, (uintptr_t)isr17);
-    interrupt_set_base(18, (uintptr_t)isr18);
-    interrupt_set_base(19, (uintptr_t)isr19);
-    interrupt_set_base(20, (uintptr_t)isr20);
-    interrupt_set_base(21, (uintptr_t)isr21);
-    interrupt_set_base(22, (uintptr_t)isr22);
-    interrupt_set_base(23, (uintptr_t)isr23);
-    interrupt_set_base(24, (uintptr_t)isr24);
-    interrupt_set_base(25, (uintptr_t)isr25);
-    interrupt_set_base(26, (uintptr_t)isr26);
-    interrupt_set_base(27, (uintptr_t)isr27);
-    interrupt_set_base(28, (uintptr_t)isr28);
-    interrupt_set_base(29, (uintptr_t)isr29);
-    interrupt_set_base(30, (uintptr_t)isr30);
-    interrupt_set_base(31, (uintptr_t)isr31);
-    
+
+    interrupt_set_base(0,  (uintptr_t) isr0);
+    interrupt_set_base(1,  (uintptr_t) isr1);
+    interrupt_set_base(2,  (uintptr_t) isr2);
+    interrupt_set_base(3,  (uintptr_t) isr3);
+    interrupt_set_base(4,  (uintptr_t) isr4);
+    interrupt_set_base(5,  (uintptr_t) isr5);
+    interrupt_set_base(6,  (uintptr_t) isr6);
+    interrupt_set_base(7,  (uintptr_t) isr7);
+    interrupt_set_base(8,  (uintptr_t) isr8);
+    interrupt_set_base(9,  (uintptr_t) isr9);
+    interrupt_set_base(10, (uintptr_t) isr10);
+    interrupt_set_base(11, (uintptr_t) isr11);
+    interrupt_set_base(12, (uintptr_t) isr12);
+    interrupt_set_base(13, (uintptr_t) isr13);
+    interrupt_set_base(14, (uintptr_t) isr14);
+    interrupt_set_base(15, (uintptr_t) isr15);
+    interrupt_set_base(16, (uintptr_t) isr16);
+    interrupt_set_base(17, (uintptr_t) isr17);
+    interrupt_set_base(18, (uintptr_t) isr18);
+    interrupt_set_base(19, (uintptr_t) isr19);
+    interrupt_set_base(20, (uintptr_t) isr20);
+    interrupt_set_base(21, (uintptr_t) isr21);
+    interrupt_set_base(22, (uintptr_t) isr22);
+    interrupt_set_base(23, (uintptr_t) isr23);
+    interrupt_set_base(24, (uintptr_t) isr24);
+    interrupt_set_base(25, (uintptr_t) isr25);
+    interrupt_set_base(26, (uintptr_t) isr26);
+    interrupt_set_base(27, (uintptr_t) isr27);
+    interrupt_set_base(28, (uintptr_t) isr28);
+    interrupt_set_base(29, (uintptr_t) isr29);
+    interrupt_set_base(30, (uintptr_t) isr30);
+    interrupt_set_base(31, (uintptr_t) isr31);
+
     irq_install();
 
     const IDT idtr = {

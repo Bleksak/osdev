@@ -1,7 +1,6 @@
 #include "cpuid.h"
 #include "../console.h"
 #include "../memory.h"
-#include "../panic.h"
 
 #include "cr.h"
 

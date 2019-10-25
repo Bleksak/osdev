@@ -6,6 +6,16 @@ project(kernel)
 set(CMAKE_ASM_NASM_LINK_EXECUTABLE "i686-elf-gcc <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
 enable_language(ASM_NASM)
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wall -Wextra -ffreestanding -nostdlib -nostdinc -ansi -std=c17 --target=i686-pc-none-elf -march=i686")
+    set(CMAKE_C_LINK_FLAGS "-nostdlib -T${PROJECT_SOURCE_DIR}/linker.ld -flto --target=i686-pc-none-elf -lgcc")
+    set(CMAKE_C_LINK_EXECUTABLE "clang-9 <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
+else()
+    set(CMAKE_C_LINK_FLAGS "-nostdlib -T ${PROJECT_SOURCE_DIR}/linker.ld -lgcc")
+    set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_COMPILER} <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
+    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
+endif()
+
 
 # set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
 
@@ -104,6 +114,11 @@ add_executable(kernel.elf
     src/pci/pci.h
     src/pci/pci.c
 
+    src/gfx/vga.h
+    src/gfx/vga.c
+    src/cli.h
+    src/cli.c
+
     src/align.c
     src/align.h
     src/assert.c
@@ -140,8 +155,6 @@ add_executable(kernel.elf
     src/paging.asm
     src/paging.c
     src/paging.h
-    src/panic.c
-    src/panic.h
     src/pheap.c
     src/pheap.h
     src/pit.c

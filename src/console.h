@@ -1,5 +1,6 @@
 #pragma once
 
+#include "std.h"
 
 enum CONSOLE_COLORS
 {
@@ -21,12 +22,18 @@ enum CONSOLE_COLORS
 	VGA_COLOR_WHITE = 15,
 };
 
-void clearscreen();
-void putch(char ch);
-void printf(const char* str, ...);
-void printf_colored(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg, const char* str, ...);
+void clearscreen(void);
 
-void itoa(unsigned int num, unsigned char base, char* buffer);
-void strrev(char* str);
+void update_cursor(void);
+
+int putch(char ch);
+int printf(const char* str, ...);
+int printf_colored(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg, const char* str, ...);
+
 void console_setcolor(enum CONSOLE_COLORS text, enum CONSOLE_COLORS bg);
-unsigned short console_getcolor();
+void console_getcolor(enum CONSOLE_COLORS* fg, enum CONSOLE_COLORS* bg);
+
+void console_back(void);
+void console_erase_back(void);
+
+__attribute__((noreturn)) void panic(const char* str, ...);

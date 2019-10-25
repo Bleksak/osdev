@@ -1,27 +1,9 @@
 bits 32
 
-global irq0
-global irq1
-global irq2
-global irq3
-global irq4
-global irq5
-global irq6
-global irq7
-global irq8
-global irq9
-global irq10
-global irq11
-global irq12
-global irq13
-global irq14
-global irq15
-
 extern irq_handler
 
 irq_common_stub:
-
-    pusha
+    pushad
     push ds
     push es
     push fs
@@ -42,105 +24,29 @@ irq_common_stub:
     pop fs
     pop es
     pop ds
-    popa
+    popad
 
-    add esp, 8
-    iret
+    add esp, 4
+    iretd
 
-irq0:
-    cli
-    push byte 0
-    push byte 32
+; irq1:
+;     cli
+;     push dword 33
+    
+;     jmp irq_common_stub
 
-    jmp irq_common_stub
 
-irq1:
-    cli
-    push byte 0
-    push byte 33
+%macro irq 1
+    global irq%1
+    irq%1:
+        cli
+        push dword 32+%1
+        jmp irq_common_stub
+%endmacro
 
-    jmp irq_common_stub
-irq2:
-    cli
-    push byte 0
-    push byte 34
+%assign i 0
 
-    jmp irq_common_stub
-irq3:
-    cli
-    push byte 0
-    push byte 35
-
-    jmp irq_common_stub
-irq4:
-    cli
-    push byte 0
-    push byte 36
-
-    jmp irq_common_stub
-irq5:
-    cli
-    push byte 0
-    push byte 37
-
-    jmp irq_common_stub
-irq6:
-    cli
-    push byte 0
-    push byte 38
-
-    jmp irq_common_stub
-irq7:
-    cli
-    push byte 0
-    push byte 39
-
-    jmp irq_common_stub
-irq8:
-    cli
-    push byte 0
-    push byte 40
-
-    jmp irq_common_stub
-irq9:
-    cli
-    push byte 0
-    push byte 41
-
-    jmp irq_common_stub
-irq10:
-    cli
-    push byte 0
-    push byte 42
-
-    jmp irq_common_stub
-irq11:
-    cli
-    push byte 0
-    push byte 43
-
-    jmp irq_common_stub
-irq12:
-    cli
-    push byte 0
-    push byte 44
-
-    jmp irq_common_stub
-irq13:
-    cli
-    push byte 0
-    push byte 45
-
-    jmp irq_common_stub
-irq14:
-    cli
-    push byte 0
-    push byte 46
-
-    jmp irq_common_stub
-irq15:
-    cli
-    push byte 0
-    push byte 47
-
-    jmp irq_common_stub
+%rep 16
+    irq i
+    %assign i i+1
+%endrep

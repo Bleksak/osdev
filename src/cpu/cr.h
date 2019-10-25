@@ -6,19 +6,17 @@
 #define MSR_XSS  0x0DA0
 #define MSR_APIC 0x1B
 
-enum CR0 {
-    CR0_PE = 1 << 0,  // Protected mode enable
-    CR0_MP = 1 << 1,  // Monitor co-processor
-    CR0_EM = 1 << 2,  // Emulation
-    CR0_TS = 1 << 3,  // Task switched
-    CR0_ET = 1 << 4,  // Extension type
-    CR0_NE = 1 << 5,  // Numeric error
-    CR0_WP = 1 << 16, // Write protect
-    CR0_AM = 1 << 18, // Alignment mask
-    CR0_NW = 1 << 29, // Not-write through
-    CR0_CD = 1 << 30, // Cache disable
-    CR0_PG = 1 << 31, // Paging enable
-};
+#define CR0_PE 1 << 0  // Protected mode enable
+#define CR0_MP 1 << 1  // Monitor co-processor
+#define CR0_EM 1 << 2  // Emulation
+#define CR0_TS 1 << 3  // Task switched
+#define CR0_ET 1 << 4  // Extension type
+#define CR0_NE 1 << 5  // Numeric error
+#define CR0_WP 1 << 16 // Write protect
+#define CR0_AM 1 << 18 // Alignment mask
+#define CR0_NW 1 << 29 // Not-write through
+#define CR0_CD 1 << 30 // Cache disable
+#define CR0_PG 1 << 31 // Paging enable
 
 enum CR4 {
     CR4_VME        = 1 << 0, // Virtual 8086 mode

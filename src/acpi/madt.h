@@ -32,7 +32,7 @@ struct InterruptSourceOverride {
     uint16_t Flags;
 } PACKED;
 
-struct NonMaskableInterrupts {
+struct NonMaskableInterrupt {
     uint8_t ACPIProcessorID; // 0xFF => all CPUs
     uint16_t Flags;
     uint8_t LINT; // 0 or 1
@@ -44,15 +44,15 @@ struct LocalAPICAddressOverride  {
 } PACKED;
 
 struct MADT_Entry {
-    uint8_t type;
-    uint8_t length;
+    const uint8_t type;
+    const uint8_t length;
 
     union {
-        struct ProcessorLocalAPIC lapic;
-        struct IOAPIC io_apic;
-        struct InterruptSourceOverride interrupt_source_override;
-        struct NonMaskableInterrupts non_maskable_interrupt;
-        struct LocalAPICAddressOverride lapic_addr_override;
+        const struct ProcessorLocalAPIC lapic;
+        const struct IOAPIC io_apic;
+        const struct InterruptSourceOverride interrupt_source_override;
+        const struct NonMaskableInterrupt non_maskable_interrupt;
+        const struct LocalAPICAddressOverride lapic_addr_override;
     };
 } PACKED;
 
@@ -64,4 +64,4 @@ struct MADT_SDT {
     const struct MADT_Entry entries;
 } PACKED;
 
-bool madt_init(const struct MADT_SDT* header);
+bool madt_parse(const struct SDT* header);

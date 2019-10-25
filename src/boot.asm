@@ -47,20 +47,20 @@ align 4
 ; undefined behavior.
 section .bss
 
-global page_directory, page_table
+extern page_directory, page_table
 
 align 4096
 stack_bottom:
 resb 32768 ; 32 KiB
 stack_top:
 
-align 0x1000
-page_directory:
-resb 0x1000
-align 0x1000
-page_table:
-resb 0x1000*0x1000
-.end:
+; align 0x1000
+; page_directory:
+; resb 0x1000
+; align 0x1000
+; page_table:
+; resb 0x1000*0x1000
+; .end:
  
 ; The linker script specifies _start as the entry point to the kernel and the
 ; bootloader will jump to this position once the kernel has been loaded. It

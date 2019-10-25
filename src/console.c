@@ -2,160 +2,223 @@
 #include "string.h"
 #include "std.h"
 
-unsigned int current_x = 0;
-unsigned int current_y = 0;
-unsigned char current_color = 0x0f;
+#include "gfx/vga.h"
 
-#define screen_width 160
+static volatile short* vga_buffer = (volatile short*) 0xB8000;
 
-volatile char* vga_buffer = (volatile char*) 0xb8000;
+static uint32_t current_x = 0;
+static uint32_t current_y = 0;
 
-void itoa(unsigned int num, unsigned char base, char* buffer) {
-    if(num == 0) {
-        buffer[0] = '0';
-        buffer[1] = 0;
-        return;
-    }
+static uint8_t current_color = 0xF;
 
-    unsigned char i = 0;
-
-    while(num) {
-        buffer[i++] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"[num % base];
-        num /= base;
-    }
-    
-    buffer[i] = 0;
-
-    strrev(buffer);
-}
-
-void ltoa(uint64_t num, uint8_t base, char* buffer) {
-    if(num == 0) {
-        buffer[0] = '0';
-        buffer[1] = 0;
-        return;
-    }
-
-    uint8_t i = 0;
-
-    while(num) {
-        buffer[i++] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"[num % base];
-        num /= base;
-    }
-
-    buffer[i] = 0;
-    strrev(buffer);
-}
-
-
-void clearscreen() {
-    for(unsigned i = 0; i<32768; ++i) {
-        vga_buffer[i] = 0;
-    }
-
+static void newline(void) {
     current_x = 0;
-    current_y = 0;
+    current_y++;
 }
 
-void putch(char ch) {
+void update_cursor(void) {
+    vga_cursor_move(current_x, current_y);
+}
+
+int putch(char ch) {
+
     if(ch == '\n') {
-        current_x = 0;
-        ++current_y;
-        return;
+        int ret = vga_width() - current_x;
+        newline();
+        return ret;
     }
-    
-    vga_buffer[(current_x<<1) + current_y * screen_width] = ch;
-    vga_buffer[(current_x<<1) + 1 + current_y * screen_width] = current_color;
-    
-    if(++current_x > screen_width) {
-        ++current_y;
-        current_x = 0;
+
+    if(ch == '\t') {
+        return 4;
     }
+
+    vga_buffer[current_y * vga_width() + current_x] = ch | current_color << 8;
+    current_x++;
+
+    if(current_x > vga_width()) {
+        newline();
+    }
+
+    return 1;
 }
 
-void console_setcolor(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg) {
-    current_color = fg | bg << 4;
+int puts(const char* str) {
+    
+    int printed_characters = 0;
+    
+    for(size_t i = 0; str[i]; ++i) {
+        printed_characters += putch(str[i]);
+    }
+
+    return printed_characters;
 }
 
-static inline void puts(const char* str) {
-    while(*str)
-        putch(*str++);
-}
+static int do_printf(const char* format, va_list args) {
+    int printed_characters = 0;
 
-static void do_printf(const char* str, va_list list) {
-    for(unsigned int i = 0; i<strlen((char*)str); ++i) {
-        char current_char = str[i];
-
-        if(current_char == '%' && str[i-1] != '\\') {
-            char next_char = str[i+1];
-            switch(next_char) {
-                case 'c': {
-                    putch((char)va_arg(list, int));
-                } break;
-
-                case 's': {
-                    puts((const char*)va_arg(list, const char*));
-                } break;
-
-                case 'd':
-                case 'u': {
-                    static char buffer[10] = {0};
-                    itoa(va_arg(list, int), 10, buffer);
-                    puts(buffer);
-                } break;
-
-
-                case 'x': {
-                    static char buffer[16] = {0};
-                    puts("0x");
-                    itoa(va_arg(list, int), 16, buffer);
-                    puts(buffer);
-                } break;
-
-                case 'p': {
-                    static char buffer[16] = {0};
-                    puts("0x");
-                    itoa((unsigned int)va_arg(list, void*), 16, buffer);
-                    puts(buffer);
-                } break;
-
-                case 'l': {
-                    char next = str[i+2];
-                    if(next == 'd' || next == 'u') {
-                        static char buffer[24] = {0};
-                        ltoa((unsigned long long)va_arg(list, uint64_t), 10, buffer);
-                        puts(buffer);
-                    } else if (next == 'x') {
-                        static char buffer[24] = {0};
-                        ltoa((unsigned long long)va_arg(list, uint64_t), 16, buffer);
-                        puts("0x");
-                        puts(buffer);
-                    }
-                    ++i;
-                } break;
-            }
-
-        ++i;
-        continue;
-        
+    for(size_t i = 0; format[i]; ++i) {
+        if(format[i] != '%' || !format[i + 1]) {
+            printed_characters += putch(format[i]);
+            continue;
         }
 
-        putch(current_char);
+        switch(format[i+1]) {
+            case 'c': {
+                printed_characters += putch(va_arg(args, int));
+                i++;
+            } break;
+
+            case 's': {
+                printed_characters += puts(va_arg(args, const char*));
+                i++;
+            } break;
+            
+            case 'b': {
+                char buffer[33] = {0};
+                itoa(va_arg(args, int), 2, buffer);
+                printed_characters += puts("0b");
+                printed_characters += puts(buffer);
+                i++;
+            } break;
+
+            case 'p':
+            case 'x': {
+                char buffer[10] = {0};
+                itoa(va_arg(args, int), 16, buffer);
+                printed_characters += puts("0x");
+                printed_characters += puts(buffer);
+                i++;
+            } break;
+
+            case 'd':
+            case 'u': {
+                char buffer[32] = {0};
+                itoa(va_arg(args, int), 10, buffer);
+                printed_characters += puts(buffer);
+                i++;
+            } break;
+
+            case 'l': {
+                if(!format[i+2]) {
+                    printed_characters += putch(format[i]);
+                    continue;
+                }
+                
+                switch(format[i+2]) {
+                    case 'b': {
+                        char buffer[128] = {0};
+                        ltoa(va_arg(args, long long), 2, buffer);
+                        printed_characters += puts("0b");
+
+ 
+                        printed_characters += puts(buffer);
+                        i+=2;
+                    } break;
+
+                    case 'p':
+                    case 'x': {
+                        char buffer[24] = {0};
+                        ltoa(va_arg(args, long long), 16, buffer);
+                        printed_characters += puts("0x");
+                        printed_characters += puts(buffer);
+                        i+=2;
+                    } break;
+
+                    case 'd':
+                    case 'u': {
+                        char buffer[32] = {0};
+                        ltoa(va_arg(args, long long), 10, buffer);
+                        printed_characters += puts(buffer);
+                        i+=2;
+                    } break;
+                }
+            } break;
+        }
+    }
+
+    update_cursor();
+    return printed_characters;
+}
+static void console_shift_left(void) {
+    for(size_t i = 0; i < vga_width() - current_x - 1; ++i) {
+        vga_buffer[current_y * vga_width() + current_x + i] = vga_buffer[current_y * vga_width() + current_x + i + 1];
     }
 }
 
-void printf_colored(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg, const char* str, ...) {
-    console_setcolor(fg, bg);
-    va_list list;
-    va_start(list, str);
-    do_printf(str, list);
-    va_end(list);
-    console_setcolor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+// static void console_shift_right(void) {
+    
+// }
+
+void console_erase_back(void) {
+    if(current_x == 0) {
+        return;
+    }
+
+    vga_buffer[current_y * vga_width() + (--current_x)] = 0x20 | current_color << 8;
+
+    console_shift_left();
+
+    update_cursor();
 }
 
-void printf(const char* str, ...) {
-    va_list va_list;
-    va_start(va_list, str);
-    do_printf(str, va_list);
-    va_end(va_list);
+
+void console_back(void) {
+    if(!current_x) {
+        return;
+    }
+
+    current_x--;
+    update_cursor();
+}
+
+void console_erase_front(void) {
+    const size_t y_index = current_y * vga_width();
+    
+    // for(size_t i = current_x; i < vga_width(); ++i) {
+        
+    // }
+}
+
+int printf(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    int ret = do_printf(format, args);
+    va_end(args);
+    return ret;
+}
+
+void panic(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    do_printf(format, args);
+    va_end(args);
+
+    for(;;) __asm__ __volatile("hlt");
+}
+
+void console_getcolor(enum CONSOLE_COLORS* fg, enum CONSOLE_COLORS* bg) {
+    *fg = current_color & 0x0F;
+    *bg = (current_color >> 4) & 0x0F;
+}
+
+void console_setcolor(enum CONSOLE_COLORS text, enum CONSOLE_COLORS bg) {
+    current_color = text | bg << 4;
+}
+
+int printf_colored(enum CONSOLE_COLORS fg, enum CONSOLE_COLORS bg, const char* format, ...) {
+    
+    enum CONSOLE_COLORS backup_fg, backup_bg;
+    console_getcolor(&backup_fg, &backup_bg);
+    
+    console_setcolor(fg, bg);
+
+    va_list args;
+    va_start(args, format);
+    
+    int ret = do_printf(format, args);
+
+    va_end(args);
+
+    console_setcolor(backup_fg, backup_bg);
+    return ret;
 }

@@ -40,7 +40,7 @@ static void memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
     __asm__ volatile("rep movsb" :: "D"(dst_addr), "S"(src_addr), "c"(len - i));
 }
 
-static void memset_classic(void* restrict dest, int c, size_t len) {
+void memset_classic(void* restrict dest, int c, size_t len) {
     uintptr_t dst_addr = (uintptr_t) dest;
     uint32_t filled = ((uint32_t)c) * 0x0101010101;
 

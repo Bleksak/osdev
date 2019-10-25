@@ -12,9 +12,9 @@
 	EBDA will follow at VIRTUAL_MEMORY_START + 0x1000
 */
 
+uint32_t page_table[1024][1024] __attribute__((aligned(4096))) = {0};
+uint32_t page_directory[1024] __attribute__((aligned(4096))) = {0};
 
-extern uint32_t page_table[1024][1024];
-extern uint32_t page_directory[1024];
 
 extern void page_unmark(size_t page);
 extern void superpage_unmark(size_t page);
@@ -91,6 +91,10 @@ static void map_page_local(uintptr_t physical, uintptr_t virtual) {
     page_table[virtual >> 22][(virtual >> 12) & 0x3ff] = (physical & ~0xFFF) | Present;
 }
 
+static void unmap_page_local(uintptr_t address) {
+	page_table[address >> 22][(address >> 12) & 0x3ff] = 0;
+}
+
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 	memset(page_bitmap, 0xFF, sizeof(page_bitmap));
 	memset(superpage_bitmap, 0xFF, sizeof(superpage_bitmap));
@@ -137,7 +141,8 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 					virtual_address += 0x1000;
 					continue;
 				}
-				
+			
+
 				map_page_local(physical_address, virtual_address);
 
 				const uintptr_t page = virtual_address >> 12;
@@ -154,8 +159,11 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 		(*counter)++;
 	}
 
-	flush_tlb();
+	// for(uintptr_t addr = 0; addr <= 0xA0000; addr+=0x1000) {
+	// 	unmap_page_local(addr);
+	// }
 
+	flush_tlb();
 	heap_init();
 }
 

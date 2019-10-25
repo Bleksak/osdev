@@ -3,8 +3,7 @@
 #include "isr.h"
 #include "console.h"
 
-void timer_phase(int hz)
-{
+void timer_phase(int hz) {
     int divisor = 1193180 / hz;
     outb(0x43, 0x36);
     outb(0x40, divisor & 0xff);
@@ -13,14 +12,12 @@ void timer_phase(int hz)
 
 volatile unsigned int ticks = 0;
 
-void timer_handler(struct registers* regs)
-{
+void timer_handler(struct ISRRegisters* regs) {
     (void) regs;
     ++ticks;
 }
 
-void timer_wait(unsigned int seconds)
-{
+void timer_wait(unsigned int seconds) {
     volatile unsigned int end = ticks + seconds * 18;
     while(end>ticks);
 }

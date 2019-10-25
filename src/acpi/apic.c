@@ -1,166 +1,178 @@
 #include "apic.h"
-#include "../console.h"
 #include "../paging.h"
-#include "../mheap.h"
-// #include "../cpu/msr.h"
-#include "../isr.h"
-#include "../panic.h"
-#include "../io.h"
-
 #include "../cpu/cr.h"
-#include "ioapic.h"
 
-enum APIC_REGISTERS {
-    APIC_APICID = 0x20,
-    APIC_APICVER = 0x30,
-    APIC_TASKPRIOR = 0x80,
-    APIC_EOI_REGISTER = 0xB0,
-    APIC_LDR = 0xD0,
-    APIC_DFR = 0xE0,
-    APIC_SPURIOUS_REGISTER = 0xF0,
-    APIC_ESR = 0x280,
-    APIC_INTERRUPT_COMMAND_LOW_REGISTER = 0x300,
-    APIC_INTERRUPT_COMMAND_HIGH_REGISTER = 0x310,
-    APIC_TIMER_REGISTER = 0x320,
-    APIC_PERF = 0x340,
-    APIC_LINT0_REGISTER = 0x350,
-    APIC_LINT1_REGISTER = 0X360,
-    APIC_LVT_ERROR = 0x370,
-    APIC_TIMER_INIT_CNT = 0x380,
-    APIC_TIMER_CURRENT_CNT = 0x390,
-    APIC_TIMER_DIV = 0x3E0,
-};
+extern void irq_empty_stub();
 
-enum APIC_VALUES {
-    APIC_DISABLE = 0x10000,
-    APIC_SW_ENABLE = 0x100,
-    APIC_LAST = 0x38F,
-    APIC_NMI = 4 << 8,
-    APIC_CPU_FOCUS = 0x200,
-    APIC_TIMER_PERIODIC = 0x20000,
-    APIC_TIMER_BASE_DIV = 1 << 20,
-};
+#define APIC_REG_ID                  0x0020
+#define APIC_REG_VERSION             0x0030
+#define APIC_REG_TASK_PRIORITY       0x0080
+#define APIC_REG_END_OF_INTERRUPT    0x00B0
+#define APIC_REG_LOGICAL_DESTINATION 0x00D0
+#define APIC_REG_DESTINATION_FORMAT  0x00E0
+#define APIC_REG_SPURIOUS_INTERRUPT  0x00F0
+#define APIC_REG_INSERVICE_ROUTINE   0x0100
+#define APIC_REG_ERROR_STATUS        0x0280
+#define APIC_REG_INTERRUPT_CMD_LOW   0x0300
+#define APIC_REG_INTERRUPT_CMD_HIGH  0x0310
+#define APIC_REG_LVT_TIMER           0x0320
+#define APIC_REG_LVT_PERF_COUNTER    0x0340
+#define APIC_REG_LVT_LINT0           0x0350
+#define APIC_REG_LVT_LINT1           0x0360
+#define APIC_REG_LVT_ERROR           0x0370
+#define APIC_TIMER_INITIAL_COUNT     0x0380
+#define APIC_TIMER_CURRENT_COUNT     0x0390
+#define APIC_TIMER_DIVIDER           0x03E0
+#define APIC_ICR_CMD_INIT            0x0500
+#define APIC_ICR_CMD_STARTUP         0x0600
+#define APIC_ICR_FIXED               0x0000
+#define APIC_ICR_LOWEST              0x0100
+#define APIC_ICR_SMI                 0x0200
+#define APIC_ICR_NMI                 0x0400
+#define APIC_ICR_PHYSICAL            0x0000
+#define APIC_ICR_LOGICAL             0x0800
+#define APIC_ICR_IDLE                0x0000
+#define APIC_ICR_SEND_PENDING        0x1000
+#define APIC_ICR_DEASSERT            0x0000
+#define APIC_ICR_ASSERT              0x4000
+#define APIC_ICR_EDGE                0x0000
+#define APIC_ICR_LEVEL               0x8000
 
-#define ICR_FIXED                       0x00000000
-#define ICR_LOWEST                      0x00000100
-#define ICR_SMI                         0x00000200
-#define ICR_NMI                         0x00000400
-#define ICR_INIT                        0x00000500
-#define ICR_STARTUP                     0x00000600
+uintptr_t lapic_base = 0;
 
-// Destination Mode
-#define ICR_PHYSICAL                    0x00000000
-#define ICR_LOGICAL                     0x00000800
+// Return bool if the APIC is supported
+bool apic_supported() {
+    unsigned int _unused, edx;
+    int success = __get_cpuid(0x01, &_unused, &_unused, &_unused, &edx);
 
-// Delivery Status
-#define ICR_IDLE                        0x00000000
-#define ICR_SEND_PENDING                0x00001000
-
-// Level
-#define ICR_DEASSERT                    0x00000000
-#define ICR_ASSERT                      0x00004000
-
-// Trigger Mode
-#define ICR_EDGE                        0x00000000
-#define ICR_LEVEL                       0x00008000
-
-// Destination Shorthand
-#define ICR_NO_SHORTHAND                0x00000000
-#define ICR_SELF                        0x00040000
-#define ICR_ALL_INCLUDING_SELF          0x00080000
-#define ICR_ALL_EXCLUDING_SELF          0x000c0000
-
-struct APIC apic;
-
-static uint32_t read_reg(uintptr_t offset) {
-    return MmioRead32((void*) (apic.lapic_addr + offset));
-}
-
-static void write_reg(uintptr_t offset, uint32_t value) {
-    MmioWrite32((void*) (apic.lapic_addr + offset), value);
-}
-
-void spurious_irq(struct registers* regs) {
-    printf("spurious triggered\n");
-    write_reg(APIC_EOI_REGISTER, 0);
-    (void) regs;
-}
-
-void dummy_tmr(struct registers* regs) {
-    printf("dummy?");
-    write_reg(APIC_EOI_REGISTER, 0);
-    (void) regs;
-}
-
-static uint32_t lapic_get_id(void) {
-    return read_reg(APIC_APICID) >> 24;
-}
-
-extern void enable_apic(void);
-
-static void LocalApicSendInit(uint8_t apic_id) {
-    write_reg(APIC_INTERRUPT_COMMAND_HIGH_REGISTER, apic_id << 24);
-    write_reg(APIC_INTERRUPT_COMMAND_LOW_REGISTER, ICR_INIT | ICR_PHYSICAL
-        | ICR_ASSERT | ICR_EDGE | ICR_NO_SHORTHAND);
-
-    while (read_reg(APIC_INTERRUPT_COMMAND_LOW_REGISTER) & ICR_SEND_PENDING);
-}
-
-static void lapic_startup(uint32_t apic_id, uint32_t vector) {
-    write_reg(APIC_INTERRUPT_COMMAND_HIGH_REGISTER, apic_id << 24);
-    write_reg(APIC_INTERRUPT_COMMAND_LOW_REGISTER, vector | ICR_STARTUP
-        | ICR_PHYSICAL | ICR_ASSERT | ICR_EDGE | ICR_NO_SHORTHAND);
-
-    while (read_reg(APIC_INTERRUPT_COMMAND_LOW_REGISTER) & ICR_SEND_PENDING);
-}
-
-void apic_init(const struct MADT_SDT* madt) {
-    // Enumerate all entries
-    const struct MADT_Entry* current_entry = &madt->entries;
-
-    uintptr_t lapic_addr = madt->lapic_addr;
-    apic.flags = madt->flags;
-
-    while((uintptr_t)current_entry < ((uintptr_t)madt + madt->sdt.length)) {
-        switch(current_entry->type) {
-            case ProcessorLocalAPIC: {
-                apic.cpu_apics[apic.cpu_count++] = &current_entry->lapic;
-            } break;
-
-            case IOAPIC: {
-                apic.io_apics[apic.ioapic_count++] = &current_entry->io_apic;
-            } break;
-
-            case InterruptSourceOverride: {
-                apic.interrupt_source_override[apic.interrupt_source_override_count++] = &current_entry->interrupt_source_override;
-            } break;
-
-            case NonMaskableInterrupts: {
-                apic.non_maskable_interrupts[apic.non_maskable_interrupts_count++] = &current_entry->non_maskable_interrupt;
-            } break;
-
-            case LocalAPICAddressOverride: {
-                lapic_addr = current_entry->lapic_addr_override.address;
-            } break;
-        }
-
-        current_entry = (struct MADT_Entry*)((uint32_t)current_entry + current_entry->length);
+    if ( success == 0 ) {
+        printf("lapic: cpuid failed\n");
+        return false;
     }
 
-    apic.lapic_addr = (uintptr_t) MAP_SIZE(lapic_addr, madt->sdt.length, Present | ReadWrite);
-    
-    __asm__ volatile("cli");
-    pic_disable();
-    
-    
-    wrmsr(MSR_APIC, (rdmsr(MSR_APIC) & 0xfffff000) | 0x800);
-    
-    write_reg(0xF0, read_reg(0xF0) | 0x1FF);
-    
+    return (edx & bit_APIC) != 0;
+}
 
-    __asm__ volatile("sti");
-    
-    ioapic_init(&apic);
+bool lapic_is_x2apic() {
+    uint32_t eax, edx;
+    rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
+
+    const uint32_t flags = IA32_APIC_BASE_MSR_X2APIC;
+
+    return (eax & flags) == flags;
+}
+
+// Set the physical address of the APIC
+void lapic_set_base(uintptr_t apic) {
+    uint32_t eax = (apic & 0xfffff000) | IA32_APIC_BASE_MSR_ENABLE;
+    wrmsr(IA32_APIC_BASE_MSR, eax, 0);
+}
+
+// Return the physical address of the APIC
+uintptr_t lapic_get_base() {
+    uint32_t eax, edx;
+    rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
+    return (eax & 0xfffff000);
+}
+
+// Read to an apic register
+uint32_t lapic_register_readl(uint32_t reg) {
+    return *(volatile uint32_t*)(lapic_base + reg);
+}
+
+// Write to an apic register
+void lapic_register_writel(uint32_t reg, uint32_t value) {
+    *(volatile uint32_t*)(lapic_base + reg) = value;
+    (void) lapic_register_readl(APIC_REG_ID);
+}
+
+uint32_t lapic_get_id() {
+    return lapic_register_readl(APIC_REG_ID) >> 24;
+}
+
+// Send a init command to another APIC
+void lapic_send_init(uint32_t apic) {
+    lapic_register_writel(APIC_REG_INTERRUPT_CMD_HIGH, apic << 24);
+
+    lapic_register_writel(APIC_REG_INTERRUPT_CMD_LOW,
+        APIC_ICR_CMD_INIT |
+        APIC_ICR_PHYSICAL |
+        APIC_ICR_EDGE     |
+        APIC_ICR_ASSERT);
+
+    while ( lapic_register_readl(APIC_REG_INTERRUPT_CMD_LOW) & APIC_ICR_SEND_PENDING );
+}
+
+// Send a init command to another APIC
+void lapic_send_startup(uint32_t apic, uint32_t vec) {
+    lapic_register_writel(APIC_REG_INTERRUPT_CMD_HIGH, apic << 24);
+
+    lapic_register_writel(APIC_REG_INTERRUPT_CMD_LOW,
+        vec                  |
+        APIC_ICR_CMD_STARTUP |
+        APIC_ICR_PHYSICAL    |
+        APIC_ICR_EDGE        |
+        APIC_ICR_ASSERT);
+
+    while ( lapic_register_readl(APIC_REG_INTERRUPT_CMD_LOW) & APIC_ICR_SEND_PENDING );
+}
+
+// Send the End of Interrupt to the APIC
+void lapic_eoi() {
+    lapic_register_writel(APIC_REG_END_OF_INTERRUPT, 0);
+}
+
+// Determine if the APIC is enabled
+bool lapic_is_enabled() {
+    uint32_t eax, edx;
+    rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
+    return (eax & IA32_APIC_BASE_MSR_ENABLE) > 0 && lapic_base != 0;
+}
+
+// Enable the spurious interrupt vector
+void lapic_enable_spurious_interrupt(uint32_t intr) {
+    lapic_register_writel(APIC_REG_SPURIOUS_INTERRUPT, intr | 0x100);
+}
+
+// Get the current in service routine for the current lapic
+int lapic_inservice_routine() {
+    for ( int i = 0; i < 8; i++ ) {
+        uint32_t isr = lapic_register_readl(APIC_REG_INSERVICE_ROUTINE + (0x10 * i));
+
+        if ( isr > 0 ) {
+            return ((i * 32) + __builtin_ctz(isr)) - 0x20;
+        }
+    }
+
+    return -1;
+}
+
+// Clear error status register
+void lapic_clear_error() {
+    printf("lapic: error status: %x\n", lapic_register_readl(APIC_REG_ERROR_STATUS));
+    lapic_register_writel(APIC_REG_ERROR_STATUS, 0);
+    lapic_register_writel(APIC_REG_ERROR_STATUS, 0);
+}
+
+// Enable the APIc
+void lapic_enable(void) {
+    // Hardware enable APIC
+    uintptr_t base = lapic_get_base();
+
+    lapic_base = MAP_SIZE(base, 4096, Present | ReadWrite);
+
+    printf("lapic: x2apic status %d\n", lapic_is_x2apic());
+
+    lapic_register_writel(APIC_REG_TASK_PRIORITY, 0);                // Enable all interrupts
+    lapic_register_writel(APIC_REG_DESTINATION_FORMAT, 0xFFFFFFFF);  // Flat mode
+    lapic_register_writel(APIC_REG_LOGICAL_DESTINATION, 1 << 24); // Logical CPU 1
+
+    // Create spurious interrupt in IDT and enable it
+    idt_set_gate(0xFF, (uintptr_t) irq_empty_stub, 0x08, 0x8E);
+    lapic_enable_spurious_interrupt(0xFF);
 
 
+    printf("lapic: setup at %p.\n", lapic_base);
+    printf("lapic: id %d\n", (lapic_register_readl(APIC_REG_ID) >> 24));
+    printf("lapic: version is %x\n", lapic_register_readl(APIC_REG_VERSION));
 }

@@ -20,6 +20,7 @@
 
 #include "ebda.h"
 
+#include "gfx/vga.h"
 #include "os.h"
 
 /*
@@ -41,32 +42,42 @@ VGA
 Userspace
 
 */
-#include "align.h"
 
-char buffer[65] = {'a', 'b', 'c'};
-char buffer2[65];
+#include "pci/pci.h"
 
-NORETURN void kernel_main(multiboot_info_t* mbd)
-{
+NORETURN void kernel_main(multiboot_info_t* mbd) {
     gdt_install();
     idt_install();
-
+    
     __asm__ volatile("sti");
 
-	cpu_init();
+    memset_classic(&os, 0, sizeof(struct OS));
 
+	cpu_init();
+    
     paging_init(mbd->mmap_addr, mbd->mmap_length);
-    printf("Paging initialized\n");
-    printf("Usable memory: %d MB\n", heap_get_free_mem() / (1024 * 1024));
 
     bda_init();
+    
+    // pci_init();
 
+    if(acpi_init()) {
+        printf("cool");
+    }
+    else {
+        printf("not cool");
+    }
 
+    // __asm__ volatile("div %1" :: "a"(k), "d"(0), "r"(0));
+
+    // printf("%s\n", r);
+
+    // printf("Paging initialized\n");
+    // printf("Usable memory: %d MB\n", heap_get_free_mem() / (1024 * 1024));
+
+    // bda_init();
 
     // ata_init();
-
-
-
 
     // Result read = ata_read(&os.drives[1], 0, 1);
 
@@ -81,15 +92,6 @@ NORETURN void kernel_main(multiboot_info_t* mbd)
     // unsigned short* res = read.result;
     
     // printf("%x\n", res[255]);
-
-    if(acpi_init())
-    {
-        printf("cool");
-    }
-    else
-    {
-        printf("not cool");
-    }
 
     //partition_init();
     
