@@ -7,8 +7,7 @@
 
 void avx_enable(void) {
     printf("Enabling AVX: ");
-
-    if(cpu_has_feature(CPUID_FEAT_AVX | CPUID_FEAT_XSAVE)) {
+    if(cpu_has_ecx_feature(CPUID_FEAT_ECX_AVX | CPUID_FEAT_ECX_XSAVE)) {
         xcr0_set(XCR0_XSAVE);
         printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");
         return;

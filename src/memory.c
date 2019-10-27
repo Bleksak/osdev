@@ -77,7 +77,7 @@ static void memclr_sse2(const void * restrict const dest, const size_t len) {
 }
 
 void memset(void* restrict dest, int c, size_t len) {
-    if (cpu_has_feature(CPUID_FEAT_SSE) && c == 0) {
+    if (cpu_has_edx_feature(CPUID_FEAT_EDX_SSE) && c == 0) {
         memclr_sse2(dest, len);
     }
     
@@ -105,7 +105,7 @@ void memcpy(void* restrict dest, void* restrict src, size_t len) {
     if(!len)
         return;
 
-    if(cpu_has_feature(CPUID_FEAT_SSE)) {
+    if(cpu_has_edx_feature(CPUID_FEAT_EDX_SSE)) {
         memcpy_sse2(dest, src, len);
         return;
     }

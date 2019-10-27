@@ -126,7 +126,6 @@ void ioapic_setup(uintptr_t base) {
         ioapic_set_redirect_entry(i, redir);
     }
 
-    printf("%d\n", sizeof(ioapic_redirect_entry_t));
-
     printf("ioapic: all entries disabled.\n");
+    pic_disable();
 }

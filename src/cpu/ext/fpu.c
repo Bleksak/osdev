@@ -7,7 +7,7 @@
 extern bool _fpu_enable(void);
 
 void fpu_enable(void) {
-    if(cpu_has_feature(CPUID_FEAT_FPU) && cr0_get(CR0_EM | CR0_ET) == CR0_ET) {
+    if(cpu_has_edx_feature(CPUID_FEAT_EDX_FPU) && cr0_get(CR0_EM | CR0_ET) == CR0_ET) {
         printf("Enabling FPU:");
         cr0_clear(CR0_EM | CR0_TS);
 

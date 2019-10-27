@@ -5,7 +5,7 @@
 
 void sse_enable(void) {
     printf("Enabling SSE: ");
-    if(!cpu_has_feature(CPUID_FEAT_SSE)) {
+    if(!cpu_has_edx_feature(CPUID_FEAT_EDX_SSE)) {
         printf_colored(VGA_COLOR_RED, VGA_COLOR_BLACK, "Failed\n");
         return;
     }
@@ -16,7 +16,7 @@ void sse_enable(void) {
     printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Success\n");
 
     printf("POPCNT support: ");
-    if(cpu_has_feature(CPUID_FEAT_POPCNT)) {
+    if(cpu_has_ecx_feature(CPUID_FEAT_ECX_POPCNT)) {
         printf_colored(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "True\n");
     }
     
@@ -46,7 +46,7 @@ static uint8_t popcntll_software(uint64_t x) {
 }
 
 uint16_t popcntw(uint16_t x) {
-    if(!cpu_has_feature(CPUID_FEAT_POPCNT)) {
+    if(!cpu_has_ecx_feature(CPUID_FEAT_ECX_POPCNT)) {
         return (uint16_t) popcntll_software(x);
     }
 
@@ -56,7 +56,7 @@ uint16_t popcntw(uint16_t x) {
 }
 
 uint32_t popcntl(uint32_t x) {
-    if(!cpu_has_feature(CPUID_FEAT_POPCNT)) {
+    if(!cpu_has_ecx_feature(CPUID_FEAT_ECX_POPCNT)) {
         return (uint32_t) popcntll_software(x);
     }
 
@@ -66,7 +66,7 @@ uint32_t popcntl(uint32_t x) {
 }
 
 uint64_t popcntll(uint64_t x) {
-    if(!cpu_has_feature(CPUID_FEAT_POPCNT)) {
+    if(!cpu_has_ecx_feature(CPUID_FEAT_ECX_POPCNT)) {
         return popcntll_software(x);
     }
 

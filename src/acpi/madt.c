@@ -7,6 +7,7 @@
 #include "../memory.h"
 #include "../mheap.h"
 #include "../os.h"
+#include "ioapic.h"
 
 bool madt_parse(const struct SDT* header) {
     const struct MADT_SDT* madt = (void*) header;
@@ -53,6 +54,7 @@ bool madt_parse(const struct SDT* header) {
 
     os.apic.lapic_addr = (uintptr_t) MAP_SIZE(lapic_addr, madt->sdt.length, Present | ReadWrite);
     lapic_enable();
+    ioapic_setup(os.apic.io_apics[0].IOAPICAddress);
 
     return true;
 }

@@ -265,3 +265,12 @@ static void keyboard_handle(struct ISRRegisters* regs) {
 void keyboard_install(void) {
     irq_install_handler(1, keyboard_handle);
 }
+
+#include "acpi/ioapic.h"
+
+extern void dummy(void);
+
+void keyboard_install_apic() {
+	interrupt_set_base(0x30, dummy);
+	ioapic_enable_irq(1, 0x30);
+}

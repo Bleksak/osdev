@@ -45,6 +45,8 @@ Userspace
 
 #include "pci/pci.h"
 
+#include "keyboard.h"
+
 NORETURN void kernel_main(multiboot_info_t* mbd) {
     gdt_install();
     idt_install();
@@ -63,6 +65,8 @@ NORETURN void kernel_main(multiboot_info_t* mbd) {
 
     if(acpi_init()) {
         printf("cool");
+
+        keyboard_install_apic();
     }
     else {
         printf("not cool");

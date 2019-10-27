@@ -21,7 +21,7 @@ enable_apic:
     ret
 
 global dummy, spurious
-extern papic, puts
+extern lapic_base, puts
 
 asdf: db "nasrat", 0
 
@@ -30,7 +30,7 @@ dummy:
     push asdf
     call puts
     add esp, 4
-    mov dword [papic + 0xB0], 0
+    mov dword [lapic_base + 0xB0], 0
 spurious:
-    mov dword [papic + 0xB0], 0
+    mov dword [lapic_base + 0xB0], 0
     iret

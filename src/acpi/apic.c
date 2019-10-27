@@ -41,38 +41,21 @@ extern void irq_empty_stub();
 uintptr_t lapic_base = 0;
 
 // Return bool if the APIC is supported
-bool apic_supported() {
-    unsigned int _unused, edx;
-    int success = __get_cpuid(0x01, &_unused, &_unused, &_unused, &edx);
-
-    if ( success == 0 ) {
-        printf("lapic: cpuid failed\n");
-        return false;
-    }
-
-    return (edx & bit_APIC) != 0;
-}
 
 bool lapic_is_x2apic() {
-    uint32_t eax, edx;
-    rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
-
     const uint32_t flags = IA32_APIC_BASE_MSR_X2APIC;
-
-    return (eax & flags) == flags;
+    return ((uint32_t)rdmsr(IA32_APIC_BASE_MSR) & flags) == flags;
 }
 
 // Set the physical address of the APIC
 void lapic_set_base(uintptr_t apic) {
-    uint32_t eax = (apic & 0xfffff000) | IA32_APIC_BASE_MSR_ENABLE;
-    wrmsr(IA32_APIC_BASE_MSR, eax, 0);
+    uint64_t eax = (apic & 0xfffff000) | IA32_APIC_BASE_MSR_ENABLE;
+    wrmsr(IA32_APIC_BASE_MSR, eax);
 }
 
 // Return the physical address of the APIC
 uintptr_t lapic_get_base() {
-    uint32_t eax, edx;
-    rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
-    return (eax & 0xfffff000);
+    return ((uintptr_t) rdmsr(IA32_APIC_BASE_MSR) & 0xfffff000);
 }
 
 // Read to an apic register
@@ -124,9 +107,8 @@ void lapic_eoi() {
 
 // Determine if the APIC is enabled
 bool lapic_is_enabled() {
-    uint32_t eax, edx;
-    rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
-    return (eax & IA32_APIC_BASE_MSR_ENABLE) > 0 && lapic_base != 0;
+    uint32_t value = (uint32_t) rdmsr(IA32_APIC_BASE_MSR);
+    return (value & IA32_APIC_BASE_MSR_ENABLE) > 0 && lapic_base != 0;
 }
 
 // Enable the spurious interrupt vector
@@ -154,6 +136,8 @@ void lapic_clear_error() {
     lapic_register_writel(APIC_REG_ERROR_STATUS, 0);
 }
 
+extern void dummy(void);
+
 // Enable the APIc
 void lapic_enable(void) {
     // Hardware enable APIC
@@ -168,7 +152,8 @@ void lapic_enable(void) {
     lapic_register_writel(APIC_REG_LOGICAL_DESTINATION, 1 << 24); // Logical CPU 1
 
     // Create spurious interrupt in IDT and enable it
-    idt_set_gate(0xFF, (uintptr_t) irq_empty_stub, 0x08, 0x8E);
+
+    interrupt_set_base(0xFF, (uintptr_t) dummy);
     lapic_enable_spurious_interrupt(0xFF);
 
 
