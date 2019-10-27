@@ -1,4 +1,5 @@
 #include "ioapic.h"
+#include "../isr.h"
 #include "../paging.h"
 #include "../console.h"
 

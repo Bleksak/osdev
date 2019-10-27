@@ -3,6 +3,8 @@
 #include "console.h"
 #include "gfx/vga.h"
 
+#include "smp/ioapic.h"
+
 typedef void(*keyboard_func_handler)(unsigned char scancode, bool make);
 
 static bool ext = false;
@@ -184,6 +186,8 @@ static void keyboard_handle_default(unsigned char scancode, bool make) {
 }
 
 static void keyboard_backspace_handler(unsigned char scancode, bool make) {
+	(void) scancode;
+	
 	if(make) {
 		console_erase_back();
 	}
@@ -266,11 +270,9 @@ void keyboard_install(void) {
     irq_install_handler(1, keyboard_handle);
 }
 
-#include "acpi/ioapic.h"
-
 extern void dummy(void);
 
 void keyboard_install_apic() {
-	interrupt_set_base(0x30, dummy);
+	interrupt_set_base(0x30, (uintptr_t) dummy);
 	ioapic_enable_irq(1, 0x30);
 }

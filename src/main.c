@@ -9,7 +9,7 @@
 
 #include "memory.h"
 #include "acpi/acpi.h"
-#include "acpi/apic.h"
+#include "smp/apic.h"
 #include "multiboot.h"
 
 #include "file/elf/elf.h"

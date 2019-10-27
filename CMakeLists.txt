@@ -78,15 +78,15 @@ add_custom_target(run
 add_executable(kernel.elf
     src/acpi/acpi.c
     src/acpi/acpi.h
-    src/acpi/apic.asm
-    src/acpi/apic.c
-    src/acpi/apic.h
-    src/acpi/ioapic.c
-    src/acpi/ioapic.h
     src/acpi/madt.c
     src/acpi/madt.h
     src/acpi/rsdp.c
     src/acpi/rsdp.h
+    src/smp/apic.asm
+    src/smp/apic.c
+    src/smp/apic.h
+    src/smp/ioapic.c
+    src/smp/ioapic.h
 
     src/cpu/ext/avx.c
     src/cpu/ext/avx.h
@@ -116,8 +116,6 @@ add_executable(kernel.elf
 
     src/gfx/vga.h
     src/gfx/vga.c
-    src/cli.h
-    src/cli.c
 
     src/align.c
     src/align.h

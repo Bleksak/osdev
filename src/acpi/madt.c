@@ -1,13 +1,13 @@
 #include "madt.h"
-#include "apic.h"
 #include "acpi.h"
+#include "../smp/apic.h"
+#include "../smp/ioapic.h"
 
 #include "../paging.h"
 #include "../console.h"
 #include "../memory.h"
 #include "../mheap.h"
 #include "../os.h"
-#include "ioapic.h"
 
 bool madt_parse(const struct SDT* header) {
     const struct MADT_SDT* madt = (void*) header;

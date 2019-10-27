@@ -172,7 +172,7 @@ void console_back(void) {
 }
 
 void console_erase_front(void) {
-    const size_t y_index = current_y * vga_width();
+    // const size_t y_index = current_y * vga_width();
     
     // for(size_t i = current_x; i < vga_width(); ++i) {
         

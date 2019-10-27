@@ -2,7 +2,7 @@
 
 #include "disk/ata.h"
 #include "acpi/acpi.h"
-#include "acpi/apic.h"
+#include "smp/apic.h"
 #include "pci/pci.h"
 #include "cpu/cpuid.h"
 

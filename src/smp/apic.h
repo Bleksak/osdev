@@ -1,6 +1,5 @@
 #pragma once
 #include "../std.h"
-#include "madt.h"
 
 #ifndef bit_MSR
 #define bit_MSR 0x00000020

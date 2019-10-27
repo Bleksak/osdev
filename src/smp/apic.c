@@ -1,6 +1,8 @@
 #include "apic.h"
 #include "../paging.h"
 #include "../cpu/cr.h"
+#include "../console.h"
+#include "../interrupt.h"
 
 extern void irq_empty_stub();
 
@@ -143,7 +145,7 @@ void lapic_enable(void) {
     // Hardware enable APIC
     uintptr_t base = lapic_get_base();
 
-    lapic_base = MAP_SIZE(base, 4096, Present | ReadWrite);
+    lapic_base = (uintptr_t) MAP_SIZE(base, 4096, Present | ReadWrite);
 
     printf("lapic: x2apic status %d\n", lapic_is_x2apic());
 

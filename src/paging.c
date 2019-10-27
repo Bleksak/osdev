@@ -91,10 +91,6 @@ static void map_page_local(uintptr_t physical, uintptr_t virtual) {
     page_table[virtual >> 22][(virtual >> 12) & 0x3ff] = (physical & ~0xFFF) | Present;
 }
 
-static void unmap_page_local(uintptr_t address) {
-	page_table[address >> 22][(address >> 12) & 0x3ff] = 0;
-}
-
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 	memset(page_bitmap, 0xFF, sizeof(page_bitmap));
 	memset(superpage_bitmap, 0xFF, sizeof(superpage_bitmap));
