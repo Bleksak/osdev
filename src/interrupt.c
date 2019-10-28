@@ -269,112 +269,112 @@ IDTEntry idt[256] = {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
     {
         .base_high = 0,
         .base_low = 0,
         .sel = 8,
-        .flags = 0x8F,
+        .flags = 0x8E,
         .zero = 0,
     },
 };
@@ -413,29 +413,29 @@ static char* exception_messages[32] = {
     "",
 };
 
-void interrupt_set_base(unsigned int index, unsigned int base) {
-    idt[index].base_high = (base >> 16) & 0xFFFF;
-    idt[index].base_low = base & 0xFFFF;
-}
-
-// void idt_set_gate(unsigned int num, unsigned int base, unsigned short sel, unsigned char flags)
-// {
-//     idt[num].base_high = (base>>16) & 0xffff;
-//     idt[num].base_low = base & 0xffff;
-//     idt[num].sel = sel;
-//     idt[num].flags = flags;
-//     idt[num].zero = 0;
-// }
-
 static void lidt(const IDT* idtr) {
     __asm__ volatile("lidt (%0)" :: "r"(idtr));
 }
 
+void interrupt_set_base(uint32_t index, uintptr_t base) {
+    idt[index].base_high = (base >> 16) & 0xFFFF;
+    idt[index].base_low = base & 0xFFFF;
+}
+
+void interrupt_set_gate(uint32_t index, uintptr_t base, uint16_t sel, uint8_t flags) {
+    idt[index].base_high = (base>>16) & 0xffff;
+    idt[index].base_low = base & 0xffff;
+    idt[index].sel = sel;
+    idt[index].flags = flags;
+    idt[index].zero = 0;
+}
+
+
 struct ExceptionRegisters {
-    unsigned int gs, fs, es, ds;      /* pushed the segs last */
-    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
-    unsigned int code, error_code;
-    unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
+    uint32_t gs, fs, es, ds;      /* pushed the segs last */
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
+    uint32_t code, error_code;
+    uint32_t eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
 };
 
 void isr_handler(const struct ISRRegisters* registers) {

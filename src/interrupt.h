@@ -8,6 +8,8 @@ struct InterruptFrame {
     uint32_t ip, cs, flags, sp, ss;
 } PACKED;
 
+
+
 struct IDTEntry {
     uint16_t base_low;
     uint16_t sel;
@@ -30,11 +32,11 @@ typedef struct IDTEntry IDTEntry;
 void idt_install(void);
 
 struct ISRRegisters {
-    unsigned int gs, fs, es, ds;      /* pushed the segs last */
-    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
-    unsigned int code;
-    unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
+    uint32_t gs, fs, es, ds;      /* pushed the segs last */
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
+    uint32_t code;
+    uint32_t eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
 };
 
-void interrupt_set_base(unsigned int index, unsigned int base);
-void interrupt_handler();
+void interrupt_set_base(uint32_t index, uintptr_t base);
+void interrupt_set_gate(uint32_t index, uintptr_t base, uint16_t selector, uint8_t flags);
