@@ -11,6 +11,9 @@ struct OS {
     struct APIC apic;
     struct CPUID cpuid;
     struct PCI pci[256*32];
+
+    uint32_t irq_vectors[256];
+
 };
 
 typedef struct OS OS;
