@@ -4,6 +4,7 @@
 #include "gfx/vga.h"
 
 #include "smp/ioapic.h"
+#include "smp/apic.h"
 
 typedef void(*keyboard_func_handler)(unsigned char scancode, bool make);
 
@@ -237,7 +238,8 @@ static bool key_is_make(unsigned char scancode) {
 	return !((scancode & KEY_RELEASE) >> 7);
 }
 
-static void keyboard_handle(struct ISRRegisters* regs) {
+__attribute__((interrupt)) static void keyboard_handle(struct ISRRegisters* regs) {
+	__asm__ volatile("cli");
 	(void) regs;
 	unsigned char scancode = inw(0x60);
 	unsigned char purecode = scancode & ~KEY_RELEASE;
@@ -246,6 +248,7 @@ static void keyboard_handle(struct ISRRegisters* regs) {
 	
 	if(scancode == KEY_EXT) {
 		ext = true;
+		lapic_eoi();
 		return;
 	}
 
@@ -255,24 +258,26 @@ static void keyboard_handle(struct ISRRegisters* regs) {
 		}
 
 		ext = false;
+		lapic_eoi();
 		return;
 	}
 
 	if(us_keymap[purecode].type == KEY_FUNCTION) {
 		us_keymap[purecode].handler(scancode, make);
+		lapic_eoi();
 		return;
 	}
 
 	keyboard_handle_default(scancode, make);
+	lapic_eoi();
 }
 
 void keyboard_install(void) {
-    irq_install_handler(1, keyboard_handle);
-}
-
-extern void dummy(void);
-
-void keyboard_install_apic() {
-	interrupt_set_base(0x30, (uintptr_t) dummy);
-	ioapic_enable_irq(1, 0x30);
+	ioapic_enable_irq(0, 1, 0x30, IOAPIC_TRIGGER_EDGE, IOAPIC_PIN_HIGH);
+	interrupt_set_gate(0x30, (uintptr_t) keyboard_handle, 0x08, 0x8E);
+	(void) inb(0x60);
+	// (void) inb(0x60);
+	// (void) inb(0x60);
+	// (void) inb(0x60);
+	// (void) inb(0x60);
 }

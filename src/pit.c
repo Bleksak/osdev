@@ -23,7 +23,7 @@ void timer_wait(unsigned int seconds) {
 }
 
 void timer_install(void) {
-    irq_install_handler(0, timer_handler);
+    // irq_install_handler(0, timer_handler);
 }
 
 // void interrupt_timer_handler(struct InterruptFrame* frame) {
