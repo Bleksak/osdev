@@ -13,6 +13,8 @@ struct SDT {
     uint32_t creator_revision;
 } PACKED;
 
+typedef struct SDT SDT;
+
 enum ACPI_Capabilities {
     ACPI_MADT = 1 << 0,
     ACPI_BERT = 1 << 1,
