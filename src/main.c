@@ -10,9 +10,8 @@
 #include "memory.h"
 #include "acpi/acpi.h"
 #include "smp/apic.h"
+#include "smp/ioapic.h"
 #include "multiboot.h"
-
-#include "file/elf/elf.h"
 
 #include "isr.h"
 #include "mheap.h"
@@ -64,12 +63,12 @@ NORETURN void kernel_main(multiboot_info_t* mbd) {
     // pci_init();
 
     if(acpi_init()) {
-        printf("cool");
+        lapic_enable();
+        ioapic_setup();
 
-        keyboard_install_apic();
-    }
-    else {
-        printf("not cool");
+        // ioapic_override_fix();
+
+        keyboard_install();
     }
 
     // __asm__ volatile("div %1" :: "a"(k), "d"(0), "r"(0));
