@@ -103,7 +103,7 @@ void lapic_send_startup(uint32_t apic, uint32_t vec) {
 }
 
 // Send the End of Interrupt to the APIC
-void lapic_eoi() {
+void lapic_eoi(void) {
     lapic_register_writel(APIC_REG_END_OF_INTERRUPT, 0);
 }
 

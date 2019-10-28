@@ -20,17 +20,29 @@ enable_apic:
     
     ret
 
-global dummy, spurious
-extern lapic_base, puts
+global dummy, spurious, keyboard
+extern lapic_base, puts, lapic_eoi
 
 asdf: db "nasrat", 0
 
 dummy:
-    cli
     push asdf
     call puts
     add esp, 4
-    mov dword [lapic_base + 0xB0], 0
 spurious:
+    call lapic_eoi
+    iret
+
+keyboard:
+    
+    pusha
+    
+    
+    
+
+
+    popa
+
+    call lapic_eoi
     mov dword [lapic_base + 0xB0], 0
     iret

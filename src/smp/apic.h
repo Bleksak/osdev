@@ -14,20 +14,22 @@
 #define IA32_APIC_BASE_MSR_X2APIC 0x400
 #define IA32_APIC_BASE_MSR_ENABLE 0x800
 
+#include "../acpi/madt.h"
+
+Vector(LAPIC, LAPICEntry);
+Vector(IOAPIC, IOAPICEntry);
+Vector(InterruptOverride, InterruptOverrideEntry);
+Vector(NMI, NMIEntry);
+
 struct APIC {
     uintptr_t lapic_addr;
     uint32_t flags;
 
-    uint8_t cpu_count;
-    uint8_t ioapic_count;
-    uint8_t interrupt_source_override_count;
-    uint8_t non_maskable_interrupts_count;
-
-    struct ProcessorLocalAPIC* cpu_apics;
-    struct IOAPIC* io_apics;
-    struct InterruptSourceOverride* interrupt_source_override;
-    struct NonMaskableInterrupt* non_maskable_interrupts;
+    LAPIC lapic;
+    IOAPIC ioapic;
+    InterruptOverride interrupt_override;
+    NMI nmi;
 };
 
-// void apic_init(const struct APIC* apic);
 void lapic_enable(void);
+void lapic_eoi(void);
