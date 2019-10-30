@@ -62,14 +62,14 @@ static const uint32_t sdt_string_table[] = {
     0x54445358, //srat
 };
 
-typedef bool (*table_parser)(const struct SDT* sdt);
+typedef void (*table_parser)(const SDT* sdt);
 
 static table_parser parsers[] = {
     madt_parse,
 };
 
 struct AcpiSDT {
-    struct SDT header;
+    SDT header;
     uintptr_t next_sdt[];
 } PACKED;
 
@@ -103,21 +103,22 @@ inline bool do_checksum(const uint8_t* ptr, size_t len) {
 //     acpi_capabilities |= cap;
 // }
 
-static bool parse_table(const struct SDT* sdt) {
+static bool parse_table(const SDT* sdt) {
     const uint32_t signature = *(const uint32_t*) sdt->signature;
 
     for(size_t i = 0; i < SDT_COUNT; ++i) {
         if((signature & sdt_string_table[i]) == sdt_string_table[i]) {
             if(do_checksum((const uint8_t*) sdt, sdt->length)) {
                 if(parsers[i]) {
-                    return parsers[i](sdt);
+                    parsers[i](sdt);
+                    return true;
                 }
             }
         }
     }
 
     printf("Warning: %c%c%c%c does not have a parser.\n", sdt->signature[0], sdt->signature[1], sdt->signature[2], sdt->signature[3]);
-    return true;
+    return true; // TODO: change to false later
 }
 
 bool acpi_init(void) {
@@ -148,7 +149,7 @@ bool acpi_init(void) {
 
     for(size_t i = 1; i < entry_count; ++i) {
         const uintptr_t current_ptr = acpi_sdt->next_sdt[i];
-        const struct SDT* current_header = (const void*) map_page(current_ptr, 0, Present);
+        const SDT* current_header = (const void*) map_page(current_ptr, 0, Present);
         
         const ptrdiff_t old_offset = last_offset;
 
@@ -163,8 +164,8 @@ bool acpi_init(void) {
         pointers[i] = (uintptr_t)acpi_tables + old_offset;
         memcpy( (void*) ((uintptr_t) acpi_tables + old_offset), (void* restrict) current_header, current_header->length);
 
-        if(!parse_table( (const struct SDT*) ((uintptr_t)acpi_tables + old_offset))) {
-            panic("Failed to parse table %s", (const struct SDT*) ((uintptr_t)acpi_tables + old_offset));
+        if(!parse_table( (const SDT*) ((uintptr_t)acpi_tables + old_offset))) {
+            panic("Failed to parse table %s", (const SDT*) ((uintptr_t)acpi_tables + old_offset));
         }
     }
 
