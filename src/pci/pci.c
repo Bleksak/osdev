@@ -68,6 +68,8 @@ static void pci_check_function(uint8_t bus, uint8_t device, uint8_t function) {
     uint8_t base_class = pci_get_base_class(bus, device, function);
     uint8_t subclass = pci_get_subclass(bus, device, function);
 
+    
+
     printf("Found function on bus %d\n", bus);
     printf("Base class = %x\nSubclass = %x\n", base_class, subclass);
 
@@ -106,25 +108,9 @@ static void pci_check_bus(uint8_t bus) {
 }
 
 void pci_init(void) {
-    // uint8_t header_type = pci_get_header_type(0, 0, 0);
-    // if(header_type & 0x80) {
-    //     for(uint8_t function = 0; function < 8; ++function) {
-    //         if(pci_get_vendor(0, 0, function) != 0xFFFF) {
-    //             pci_check_bus(function);
-    //         }
-    //     }
-    // } else {
-    //     pci_check_bus(0);
-    // }
-    // printf("here");
-    // for(uint16_t bus = 0; bus < 256; ++bus) {
-    //     pci_check_bus(bus);
-    // }
-
     for(uint32_t bus = 0; bus < 256; ++bus) {
         for(uint8_t device = 0; device < 32; ++device) {
             pci_check_device(bus, device);
         }
     }
-    printf("Done");
 }
