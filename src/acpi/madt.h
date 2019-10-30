@@ -13,29 +13,29 @@ enum MADT_Entries {
 };
 
 struct LAPICEntry { // Entry type 0 
-    uint8_t ACPIProcessorID;
-    uint8_t APICID;
-    uint32_t Flags;
+    uint8_t acpi_id;
+    uint8_t apic_id;
+    uint32_t flags;
 } PACKED;
 
 struct IOAPICEntry { // Entry type 1
-    uint8_t IOAPICID;
-    uint8_t Reserved;
-    uint32_t IOAPICAddress;
-    uint32_t GlobalSystemInterruptBase;
+    uint8_t id;
+    uint8_t reserved;
+    uint32_t ioapic_address;
+    uint32_t global_int;
 } PACKED;
 
 struct InterruptOverrideEntry {
-    uint8_t BusSource;
-    uint8_t IRQSource;
-    uint32_t GlobalSystemInterrupt;
-    uint16_t Flags;
+    uint8_t bus_source;
+    uint8_t irq_source;
+    uint32_t global_system_interrupt;
+    uint16_t flags;
 } PACKED;
 
 struct NMIEntry {
-    uint8_t ACPIProcessorID; // 0xFF => all CPUs
-    uint16_t Flags;
-    uint8_t LINT; // 0 or 1
+    uint8_t acpi_cpu; // 0xFF => all CPUs
+    uint16_t flags;
+    uint8_t lint; // 0 or 1
 } PACKED;
 
 struct LAPICOverride  {
@@ -53,7 +53,7 @@ struct MADTEntry {
     const uint8_t type;
     const uint8_t length;
 
-    union {
+    const union {
         const LAPICEntry lapic;
         const IOAPICEntry ioapic;
         const InterruptOverrideEntry interrupt_override;
@@ -74,4 +74,4 @@ struct MADT {
 typedef struct MADT MADT;
 
 
-bool madt_parse(const struct SDT* header);
+void madt_parse(const SDT* header);
