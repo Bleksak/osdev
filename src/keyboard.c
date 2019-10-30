@@ -238,8 +238,29 @@ static bool key_is_make(unsigned char scancode) {
 	return !((scancode & KEY_RELEASE) >> 7);
 }
 
-__attribute__((interrupt)) static void keyboard_handle(struct ISRRegisters* regs) {
+
+#ifdef __clang__
+	__attribute__((interrupt))
+#else
+	__attribute__((unused)) static void gcc_keyboard_handler(struct ISRRegisters* regs);
+	__attribute__((naked))
+#endif
+
+static void keyboard_handle(struct ISRRegisters* regs) {
 	__asm__ volatile("cli");
+	#ifndef __clang__
+		__asm__ volatile("pusha");
+		__asm__ volatile("push %0" :: "r"(regs));
+		__asm__ volatile("call gcc_keyboard_handler");
+		__asm__ volatile("add $4, %esp");
+		__asm__ volatile("popa");
+		__asm__ volatile("iretl");
+	}
+
+	static void gcc_keyboard_handler(struct ISRRegisters* regs) {
+	
+	#endif
+
 	(void) regs;
 	unsigned char scancode = inw(0x60);
 	unsigned char purecode = scancode & ~KEY_RELEASE;
