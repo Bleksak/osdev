@@ -43,54 +43,54 @@ typedef struct {
 } __attribute__((packed, aligned(4))) ioapic_redirect_entry_t;
 
 // Write a 32bit value to a IO APIC register
-void ioapic_register_writel(uint8_t offset, uint32_t val) {
-    *(volatile uint32_t*) (os.apic.ioapic.entries[0].IOAPICAddress + IOAPIC_IOREGSEL) = offset;
-    *(volatile uint32_t*) (os.apic.ioapic.entries[0].IOAPICAddress + IOAPIC_IOREGWIN) = val;
+void ioapic_register_writel(size_t bus, uint8_t offset, uint32_t val) {
+    *(volatile uint32_t*) (os.apic.ioapic.entries[bus].ioapic_address + IOAPIC_IOREGSEL) = offset;
+    *(volatile uint32_t*) (os.apic.ioapic.entries[bus].ioapic_address + IOAPIC_IOREGWIN) = val;
 }
 
 // Read a 32bit value from a IO apic register
-uint32_t ioapic_register_readl(uint8_t offset) {
-    *(volatile uint32_t*) (os.apic.ioapic.entries[0].IOAPICAddress + IOAPIC_IOREGSEL) = offset;
-    return *(volatile uint32_t*) (os.apic.ioapic.entries[0].IOAPICAddress + IOAPIC_IOREGWIN);
+uint32_t ioapic_register_readl(size_t bus, uint8_t offset) {
+    *(volatile uint32_t*) (os.apic.ioapic.entries[bus].ioapic_address + IOAPIC_IOREGSEL) = offset;
+    return *(volatile uint32_t*) (os.apic.ioapic.entries[bus].ioapic_address + IOAPIC_IOREGWIN);
 }
 
 // Get the I/O APIC ID
-uint32_t ioapic_get_id() {
-    return (ioapic_register_readl(IOAPIC_REG_IOAPICID) >> 24) & 0xF;
+uint32_t ioapic_get_id(size_t bus) {
+    return (ioapic_register_readl(bus, IOAPIC_REG_IOAPICID) >> 24) & 0xF;
 }
 
 // Get the I/O APIC version
-uint32_t ioapic_get_version() {
-    return ioapic_register_readl(IOAPIC_REG_IOAPICVER) & 0xFF;
+uint32_t ioapic_get_version(size_t bus) {
+    return ioapic_register_readl(bus, IOAPIC_REG_IOAPICVER) & 0xFF;
 }
 
 // Get the I/O APIC supported IRQ count
-uint32_t ioapic_get_irqs() {
-    return ((ioapic_register_readl(IOAPIC_REG_IOAPICVER) >> 16) & 0xFF) + 1;
+uint32_t ioapic_get_irqs(size_t bus) {
+    return ((ioapic_register_readl(bus, IOAPIC_REG_IOAPICVER) >> 16) & 0xFF) + 1;
 }
 
 // Get the redirect entry of an IRQ
-ioapic_redirect_entry_t ioapic_get_redirect_entry(uint8_t irq) {
+ioapic_redirect_entry_t ioapic_get_redirect_entry(size_t bus, uint8_t irq) {
     uint32_t reg = IOAPIC_REG_IOREDTBL + (2 * irq);
 
-    uint64_t data = (uint64_t) ioapic_register_readl(reg) |
-                   ((uint64_t) ioapic_register_readl(reg + 1) << 32);
+    uint64_t data = (uint64_t) ioapic_register_readl(bus, reg) |
+                   ((uint64_t) ioapic_register_readl(bus, reg + 1) << 32);
 
     return *(ioapic_redirect_entry_t*) &data;
 }
 
 // Set the redirect entry of an IRQ
-void ioapic_set_redirect_entry(uint8_t irq, ioapic_redirect_entry_t redir) {
+void ioapic_set_redirect_entry(size_t bus, uint8_t irq, ioapic_redirect_entry_t redir) {
     uint32_t reg = IOAPIC_REG_IOREDTBL + (2 * irq);
     uint32_t* data = (uint32_t*) &redir;
 
-    ioapic_register_writel(reg, data[0]);
-    ioapic_register_writel(reg + 1, data[1]);
+    ioapic_register_writel(bus, reg, data[0]);
+    ioapic_register_writel(bus, reg + 1, data[1]);
 }
 
 // Enable a specific interrupt
 void ioapic_enable_irq(uint32_t bus, uint32_t irq, uint8_t vector, bool trigger_mode, bool polarity) {
-    ioapic_redirect_entry_t redir = ioapic_get_redirect_entry(irq);
+    ioapic_redirect_entry_t redir = ioapic_get_redirect_entry(bus, irq);
 
     redir.vector = vector;
     redir.delivery_mode = IOAPIC_DELIVERY_MODE_FIX;
@@ -101,28 +101,28 @@ void ioapic_enable_irq(uint32_t bus, uint32_t irq, uint8_t vector, bool trigger_
     
     redir.pin_polarity = polarity;
 
-    ioapic_set_redirect_entry(irq, redir);
+    ioapic_set_redirect_entry(bus, irq, redir);
     printf("ioapic: mapping IRQ#%d to interrupt %d\n", irq, vector);
 }
 
 // Initialize the I/O APIC but disable everything
 void ioapic_setup(void) {
-    printf("ioapic: ID: %d\n", ioapic_get_id());
-    printf("ioapic: version: %x\n", ioapic_get_version());
-    printf("ioapic: IRQ#: %d\n", ioapic_get_irqs());
 
-    // Disable all interrupts
-    for ( uint32_t i = 0; i < ioapic_get_irqs(); i++ ) {
-        ioapic_redirect_entry_t redir = ioapic_get_redirect_entry(i);
+    for(size_t bus = 0; bus < os.apic.ioapic.length; ++bus) {
+        printf("ioapic #%d: ID: %d\n", bus, ioapic_get_id(bus));
+        printf("ioapic #%d: version: %x\n", bus, ioapic_get_version(bus));
+        printf("ioapic #%d: IRQ#: %d\n", bus, ioapic_get_irqs(bus));
 
-        redir.mask = 1;
+        // Disable all interrupts
+        for ( uint32_t i = 0; i < ioapic_get_irqs(bus); i++ ) {
+            ioapic_redirect_entry_t redir = ioapic_get_redirect_entry(bus, i);
 
-        ioapic_set_redirect_entry(i, redir);
+            redir.mask = 1;
+
+            ioapic_set_redirect_entry(bus, i, redir);
+        }
     }
 
     printf("ioapic: all entries disabled.\n");
     pic_disable();
-
-    
-
 }
