@@ -5,8 +5,7 @@
 
 #include "std.h"
 
-typedef struct alloc
-{
+typedef struct alloc {
 	struct alloc* next;
 	struct alloc* prev;
 	struct alloc* prev_phys;

@@ -2,7 +2,7 @@ set(CMAKE_SYSTEM Generic)
 set(CMAKE_SYSTEM_NAME Generic)
 
 INCLUDE(CMakeForceCompiler)
-CMAKE_FORCE_C_COMPILER(clang-9 Clang)
+CMAKE_FORCE_C_COMPILER(clang Clang)
 
 set(CMAKE_C_SIZEOF_DATA_PTR 4)
 

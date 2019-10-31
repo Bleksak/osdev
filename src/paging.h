@@ -15,8 +15,7 @@
 #define MB KB * 1024
 #define GB MB * 1024
 
-enum PageFlags
-{
+enum PageFlags {
     Present = 1 << 0,
     ReadWrite = 1 << 1,
     PrivillegeLevel = 1 << 2,
