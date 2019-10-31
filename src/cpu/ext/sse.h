@@ -90,7 +90,7 @@ struct FxsaveBuffer {
     uint64_t xmm13[2];
     uint64_t xmm14[2];
     uint64_t xmm15[2];
-} PACKED;
+} __attribute__((packed));
 
 void sse_enable(void);
 void fxsave(void* buffer);

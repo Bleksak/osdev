@@ -121,7 +121,6 @@ add_executable(kernel.elf
     src/align.h
     src/assert.c
     src/assert.h
-    src/attributes.h
     src/bda.c
     src/bda.h
     src/boot.asm

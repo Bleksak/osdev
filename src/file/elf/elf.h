@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../std.h"
-#include "../../attributes.h"
 
 typedef unsigned long long elf64_addr_t;
 typedef unsigned long long elf64_offset_t;
@@ -42,7 +41,7 @@ enum elf_instruction_set {
     AArch64 = 0xb7,
 };
 
-struct PACKED elf_header32 {
+struct elf_header32 {
     uint32_t magic;
     uint8_t op_size;
     uint8_t endianity;
@@ -65,9 +64,9 @@ struct PACKED elf_header32 {
     uint16_t section_header_table_size;
     uint16_t section_header_table_count;
     uint16_t section_names_index;
-};
+} __attribute__((packed));
 
-struct PACKED elf_program_header {
+struct elf_program_header {
     uint32_t segment_type;
     uint32_t data_file_offset; //p_offset
     uint32_t virtual_memory_start;
@@ -76,9 +75,9 @@ struct PACKED elf_program_header {
     uint32_t memory_size;
     uint32_t flags;
     uint32_t alignment;    
-};
+} __attribute__((packed));
 
-struct PACKED elf_section_header {
+struct elf_section_header {
     uint32_t sh_name;
     uint32_t sh_type;
     uint32_t sh_flags;
@@ -89,4 +88,4 @@ struct PACKED elf_section_header {
     uint32_t sh_info;
     uint32_t sh_addralign;
     uint32_t sh_entsize;
-};
+} __attribute__((packed));

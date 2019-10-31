@@ -1,7 +1,6 @@
 #pragma once
 #include "../std.h"
 #include "../result.h"
-#include "../attributes.h"
 
 struct Drive;
 typedef struct Drive Drive;
@@ -19,12 +18,12 @@ enum ATA_TYPE {
 };
 
 struct ATAIdentify {
-    struct PACKED {
+    struct {
         uint16_t ATADevice : 1;
         uint16_t useless1 : 12;
         uint16_t IncompleteResponse : 1;
         uint16_t useless2 : 2;
-    } GeneralConfiguration;
+    } __attribute__((packed)) GeneralConfiguration;
 
     uint16_t useless1;
     uint16_t SpecificConfiguration;
@@ -41,7 +40,7 @@ struct ATAIdentify {
 
     uint16_t TrustedComputerFeatureSet;
     
-    struct PACKED {
+    struct {
         uint16_t useless1 : 2;
         uint16_t StandbyTimer : 1;
         uint16_t useless2 : 1;
@@ -54,19 +53,19 @@ struct ATAIdentify {
 
         uint16_t useless4 : 15;
         uint16_t MinimumStandbyValue : 1;
-    } Capabilities1;
+    } __attribute__((packed)) Capabilities1;
 
     uint16_t useless5[2];
 
-    struct PACKED {
+    struct {
         uint16_t useless1 : 14;
         uint16_t UltraDMAValid : 1;
         uint16_t Shorts64to70Valid : 1;
-    } Valid1;
+    } __attribute__((packed)) Valid1;
 
     uint16_t useless6[5];
 
-    struct PACKED {
+    struct {
         uint16_t BLOCK_ERASE_EXT : 1;
         uint16_t OVERWRITE_EXT : 1;
         uint16_t CRYPTO_SCRAMBLE_EXT : 1;
@@ -79,13 +78,13 @@ struct ATAIdentify {
         
         uint16_t MultipleLogicalSectorSettingValid : 1;
         uint16_t SectorsPerDRQSetting : 8;
-    } Supported1;
+    } __attribute__((packed)) Supported1;
 
     uint32_t SectorCountLow;
     
     uint16_t useless7;
 
-    struct PACKED {
+    struct {
         uint16_t useless1 : 5;
         uint16_t Mode2Selected : 1;
         uint16_t Mode1Selected : 1;
@@ -94,7 +93,7 @@ struct ATAIdentify {
         uint16_t Mode2Supported : 1;
         uint16_t Mode1Supported : 1;
         uint16_t Mode0Supported : 1;
-    } MultiwordDMA;
+    } __attribute__((packed)) MultiwordDMA;
 
     uint16_t useless8 : 14;
     uint8_t PIO3_4Supported : 2;
@@ -104,7 +103,7 @@ struct ATAIdentify {
     uint16_t MinimumPIOTransferCycleTime_NOFLOW;
     uint16_t MinimumPIOTransferCycleTime_IORDY;
 
-    struct PACKED {
+    struct {
         uint16_t reservedForCFA : 1;
         uint16_t DeterministicDataInTrimmedLBA : 1;
         uint16_t LongPhysSectorAlignmentErrorReportControl : 1;
@@ -120,16 +119,16 @@ struct ATAIdentify {
         uint16_t ExtendedUserAddressableSectors : 1;
         uint16_t WriteCacheNonVolatile : 1;
         uint16_t useless5 : 2;
-    } Supported2;
+    } __attribute__((packed)) Supported2;
 
     uint16_t useless9[5];
     
-    struct PACKED {
+    struct {
         uint16_t useless : 11;
         uint16_t MaxQueueDepth : 5; // minus 1
-    } QueueDepth;
+    } __attribute__((packed)) QueueDepth;
 
-    struct PACKED {
+    struct {
         uint16_t READ_LOG_DMA_EXT : 1; // if is equal to READ_LOG_EXT
         uint16_t DeviceAutomaticPartialToSlumberTransition : 1;
         uint16_t HostAutomaticPartialToSlumberTransition : 1;
@@ -143,18 +142,18 @@ struct ATAIdentify {
         uint16_t SATAGen2Speed : 1; // 3.0Gb/s
         uint16_t SATAGen1Speed : 1; // 1.5Gb/s
         uint16_t zero : 1;
-    } SATA_Capabilities1;
+    } __attribute__((packed)) SATA_Capabilities1;
 
-    struct PACKED {
+    struct {
         uint16_t useless1 : 9;
         uint16_t RECEIVE_SEND_FPDMA_QUEUED : 1;
         uint16_t NCQueueManagementCommand : 1;
         uint16_t NCQStreaming : 1;
         uint16_t CurrentNegotiatedSATASpeed : 3;
         uint16_t zero : 1;
-    } SATA_Capabilities2;
+    } __attribute__((packed)) SATA_Capabilities2;
 
-    struct PACKED {
+    struct {
         uint16_t useless1 : 8;
         uint16_t NCQAutosense : 1;
         uint16_t SoftwareSettingsPreservation : 1;
@@ -164,9 +163,9 @@ struct ATAIdentify {
         uint16_t DMASetupAutoActivation : 1;
         uint16_t NonZeroBufferOffsets : 1;
         uint16_t zero : 1;
-    } SATA_Features;
+    } __attribute__((packed)) SATA_Features;
 
-    struct PACKED {
+    struct {
         uint16_t useless : 8;
         uint16_t AutomaticPartialToSlumberTransition : 1;
         uint16_t SoftwareSettingsPreservation : 1;
@@ -176,12 +175,12 @@ struct ATAIdentify {
         uint16_t DMASetupAutoActivation : 1;
         uint16_t NonZeroBufferOffsets : 1;
         uint16_t zero : 1;
-    } SATA_Features_Enabled;
+    } __attribute__((packed)) SATA_Features_Enabled;
 
     uint16_t MajorVersionNumber;
     uint16_t MinorVersionNumber;
 
-    struct PACKED {
+    struct {
         uint16_t useless1 : 1;
         uint16_t NOP : 1;
         uint16_t READ_BUFFER : 1;
@@ -196,9 +195,9 @@ struct ATAIdentify {
         uint16_t useless4 : 1;
         uint16_t SecurityFeatureSet : 1;
         uint16_t SMARTFeatureSet : 1;
-    } Supported3;
+    } __attribute__((packed)) Supported3;
 
-    struct PACKED {
+    struct {
         uint16_t zero : 1;
         uint16_t one : 1;
         uint16_t FLUSH_CACHE_EXT : 1;
@@ -212,9 +211,9 @@ struct ATAIdentify {
         uint16_t APMFeatureSet : 1;
         uint16_t useless4 : 2;
         uint16_t DOWNLOAD_MICROCODE : 1;
-    } Supported4;
+    } __attribute__((packed)) Supported4;
 
-    struct PACKED {
+    struct {
         uint16_t zero : 1;
         uint16_t one : 1;
         uint16_t IDLE_IMMIEDIATE_UNLOAD : 1;
@@ -227,9 +226,9 @@ struct ATAIdentify {
         uint16_t useless3 : 2;
         uint16_t SMARTSelfTest : 1;
         uint16_t SMARTErrorLogging : 1;
-    } Supported5;
+    } __attribute__((packed)) Supported5;
 
-    struct PACKED {
+    struct {
         uint16_t useless : 1;
         uint16_t nop : 1;
         uint16_t READ_BUFFER : 1;
@@ -244,9 +243,9 @@ struct ATAIdentify {
         uint16_t useless4 : 1;
         uint16_t security : 1;
         uint16_t smart : 1;
-    } Supported6;
+    } __attribute__((packed)) Supported6;
 
-   struct PACKED {
+   struct {
         uint16_t Words119_120Valid : 1;
         uint16_t useless : 1;
         uint16_t FLUSH_CACHE_EXT : 1;
@@ -261,9 +260,9 @@ struct ATAIdentify {
         uint16_t CFA_reserved : 1;
         uint16_t useless5 : 1;
         uint16_t DOWNLOAD_MICROCODE : 1;
-   } Supported7;
+   } __attribute__((packed)) Supported7;
 
-   struct PACKED {
+   struct {
        uint16_t zero : 1;
        uint16_t one : 1;
        uint16_t IDLE_IMMEDIATE : 1;
@@ -276,9 +275,9 @@ struct ATAIdentify {
        uint16_t MediaSerialNumberValid : 1;
        uint16_t SMART_SelfTest : 1;
        uint16_t SMART_ErrorLog : 1;
-   } Supported8;
+   } __attribute__((packed)) Supported8;
 
-    struct PACKED {
+    struct {
         uint16_t reserved : 1;
         uint16_t mode6_selected : 1;
         uint16_t mode5_selected : 1;
@@ -295,7 +294,7 @@ struct ATAIdentify {
         uint16_t mode2_supported : 1;
         uint16_t mode1_supported : 1;
         uint16_t mode0_supported : 1;
-    } UltraDMAModes;
+    } __attribute__((packed)) UltraDMAModes;
 
     uint32_t ExtendedTime;
     uint8_t reserved2115;
@@ -311,14 +310,14 @@ struct ATAIdentify {
     uint16_t PIOStreamingTransferTime;
     uint16_t DataSetManagementBlocks;
 
-    struct PACKED {
+    struct {
         uint16_t zero : 1;
         uint16_t one : 1;
         uint16_t MultipleLogicalPerPhysical : 1;
         uint16_t LogicalSectorLongerThan256Words : 1;
         uint16_t reserved : 8;
         uint16_t LogicalSectorsPerPhysical : 4;
-    } PhysicalLogicalSectorSize;
+    } __attribute__((packed)) PhysicalLogicalSectorSize;
 
     uint16_t InterSeekDelay;
     uint8_t WorldWideName[8];
@@ -340,11 +339,11 @@ struct ATAIdentify {
     uint16_t SCTCommandTransport;
     uint32_t reserved92835;
     
-    struct PACKED {
+    struct {
         uint16_t zero : 1;
         uint16_t one : 1;
         uint16_t offset : 14;
-    } LogicalSectorAlignment;
+    } __attribute__((packed)) LogicalSectorAlignment;
 
     uint32_t WriteReadVerifySectorMode3Count;
     uint32_t WriteReadVerifySectorMode2Count;
@@ -361,7 +360,7 @@ struct ATAIdentify {
     uint16_t DownloadMicrocodeMaximumBlocks;
     uint16_t reserved8347638457[19];
     uint16_t IntegrityWord;
-} PACKED;
+};
 
 struct ATARegisters {
     uint16_t data;

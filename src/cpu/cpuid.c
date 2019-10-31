@@ -30,6 +30,8 @@ struct Registers {
     unsigned int eax, ebx, ecx, edx, esi, edi, ebp, esp;
 };
 
+typedef struct Registers Registers;
+
 static Registers cpuid(uint32_t eax) {
     unsigned int ebx, ecx, edx;
     __asm__ volatile("cpuid" : "=b"(ebx), "=c"(ecx), "=d"(edx), "+a"(eax));

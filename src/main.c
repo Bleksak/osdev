@@ -46,7 +46,7 @@ Userspace
 
 #include "keyboard.h"
 
-NORETURN void kernel_main(multiboot_info_t* mbd) {
+__attribute__((noreturn)) void kernel_main(multiboot_info_t* mbd) {
     gdt_install();
     idt_install();
     

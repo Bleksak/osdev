@@ -71,7 +71,7 @@ static table_parser parsers[] = {
 struct AcpiSDT {
     SDT header;
     uintptr_t next_sdt[];
-} PACKED;
+} __attribute__((packed));
 
 #include "../console.h"
 

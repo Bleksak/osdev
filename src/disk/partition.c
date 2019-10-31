@@ -1,7 +1,6 @@
 #include "partition.h"
 #include "../console.h"
 #include "../memory.h"
-#include "../attributes.h"
 #include "../mheap.h"
 #include "../os.h"
 #include "../paging.h"
@@ -22,7 +21,7 @@ struct MBRPartition {
     uint16_t end_cylinder: 10;
     uint32_t partition_start;
     uint32_t partition_size;
-} PACKED;
+} __attribute__((packed));
 
 static uint64_t checksum(const struct MBRPartition* partition) {
 

@@ -119,10 +119,7 @@
 #define CPUID_EXT_FEAT_RDPID 81
 #define CPUID_EXT_FEAT_SGX_LC 89
 
-typedef struct Registers Registers;
-
 #include "../std.h"
-#include "../attributes.h"
 
 #include "ext/fpu.h"
 #include "ext/sse.h"
@@ -145,7 +142,7 @@ struct CPUID {
 
     uint32_t maximum_cpuid_input_value_ext;
     char cpu_brand_string_ext[48];
-} PACKED;
+} __attribute__((packed));
 
 void cpu_init(void);
 

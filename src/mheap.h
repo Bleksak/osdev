@@ -2,11 +2,9 @@
 
 #include "std.h"
 
-#include "attributes.h"
-
-WARN_UNUSED_RESULT void* malloc(size_t size);
-WARN_UNUSED_RESULT void* calloc(size_t count, size_t size);
-WARN_UNUSED_RESULT void* realloc(void* base, size_t new_size);
+__attribute__((warn_unused_result)) void* malloc(size_t size);
+__attribute__((warn_unused_result)) void* calloc(size_t count, size_t size);
+__attribute__((warn_unused_result)) void* realloc(void* base, size_t new_size);
 void  free(void* addr);
 
 size_t heap_get_free_mem(void);

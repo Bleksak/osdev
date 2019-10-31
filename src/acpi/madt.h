@@ -1,7 +1,6 @@
 #pragma once
 #include "../std.h"
 #include "acpi.h"
-#include "../attributes.h"
 
 
 enum MADT_Entries {
@@ -16,32 +15,32 @@ struct LAPICEntry { // Entry type 0
     uint8_t acpi_id;
     uint8_t apic_id;
     uint32_t flags;
-} PACKED;
+} __attribute__((packed));
 
 struct IOAPICEntry { // Entry type 1
     uint8_t id;
     uint8_t reserved;
     uint32_t ioapic_address;
     uint32_t global_int;
-} PACKED;
+} __attribute__((packed));
 
 struct InterruptOverrideEntry {
     uint8_t bus_source;
     uint8_t irq_source;
     uint32_t global_system_interrupt;
     uint16_t flags;
-} PACKED;
+} __attribute__((packed));
 
 struct NMIEntry {
     uint8_t acpi_cpu; // 0xFF => all CPUs
     uint16_t flags;
     uint8_t lint; // 0 or 1
-} PACKED;
+} __attribute__((packed));
 
 struct LAPICOverride  {
     uint16_t reserved;
     uint64_t address;
-} PACKED;
+} __attribute__((packed));
 
 typedef struct LAPICEntry LAPICEntry;
 typedef struct IOAPICEntry IOAPICEntry;
@@ -60,7 +59,7 @@ struct MADTEntry {
         const NMIEntry nmi;
         const LAPICOverride lapic_override;
     };
-} PACKED;
+} __attribute__((packed));
 
 typedef struct MADTEntry MADTEntry;
 
@@ -69,7 +68,7 @@ struct MADT {
     const uint32_t lapic_addr;
     const uint32_t flags;
     const MADTEntry entries;
-} PACKED;
+} __attribute__((packed));
 
 typedef struct MADT MADT;
 

@@ -2,11 +2,9 @@
 
 #include "std.h"
 
-#include "attributes.h"
-
 struct InterruptFrame {
     uint32_t ip, cs, flags, sp, ss;
-} PACKED;
+} __attribute__((packed));
 
 
 
@@ -16,12 +14,12 @@ struct IDTEntry {
     uint8_t zero;
     uint8_t flags;
     uint16_t base_high;
-} PACKED;
+} __attribute__((packed));
 
 struct IDT {
     uint16_t length;
     uintptr_t idt_ptr;
-} PACKED;
+} __attribute__((packed));
 
 
 #define IDT_EXTRACT_PTR(entry) (uintptr_t)&entry

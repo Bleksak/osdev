@@ -1,5 +1,4 @@
 #include "interrupt.h"
-#include "attributes.h"
 #include "console.h"
 
 #include "isr.h"

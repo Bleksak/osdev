@@ -3,8 +3,6 @@
 
 #include "multiboot.h"
 
-#include "attributes.h"
-
 #define VIRTUAL_MEMORY_START 0x01000000
 #define PUBLIC_VIRTUAL_MEMORY_START VIRTUAL_MEMORY_START + 0x4000000 // 64MiB reserved for OS
 #define MEM_ZERO_MAP VIRTUAL_MEMORY_START

@@ -1,24 +1,21 @@
 #include "gdt.h"
 
-#include "attributes.h"
 
 // TODO: GENERATE GDT AT COMPILE TIME
 
-struct GDTEntry
-{
+struct GDTEntry {
     unsigned short limit_low;
     unsigned short base_low;
     unsigned char base_middle;
     unsigned char access;
     unsigned char granularity;
     unsigned char base_high;
-} PACKED;
+} __attribute__((packed));
 
-struct GDT
-{
+struct GDT {
     unsigned short limit;
     unsigned int base;
-} PACKED;
+} __attribute__((packed));
 
 #define MAKE_GDT_ENTRY(base, limit, access, granularity) ((limit & 0xFFFF) << 48) | ((base & 0xFFFF) << 32) | (((base >> 16) && 0xFF) << 24) | (access & 0xFF) << 16 | ((granularity & 0xF0) | (limit >> 16) & 0x0F) | 
 
@@ -79,8 +76,7 @@ static void lgdt(struct GDT* gdtr) {
     __asm__ volatile("lgdt (%0)" :: "r"(gdtr));
 }
 
-void gdt_install(void)
-{
+void gdt_install(void) {
     struct GDT gdtr;
     gdtr.limit = sizeof(gdt) - 1;
     gdtr.base = (unsigned int)&gdt;

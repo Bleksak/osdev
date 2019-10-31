@@ -12,7 +12,7 @@ typedef struct alloc {
 
 	unsigned int free;
 	size_t size;
-} ALIGNED(32) alloc_t;
+} __attribute__((aligned(32))) alloc_t;
 
 size_t kernel_mem = 0;
 
