@@ -1,4 +1,5 @@
-%define get_phys(x) x - 0xBFF00000
+%define get_phys(x) (x) - 0xBFF00000
+%define get_virt(x) (x) + 0xBFF00000
 
 
 bits 32
@@ -120,8 +121,6 @@ _start:
 	mov esi, get_phys(page_table)
 	mov edi, get_phys(page_directory)
 
-
-
 .l3:
 	mov eax, esi
 	or eax, 3
@@ -145,8 +144,8 @@ _start:
 	push ebx
 
 	extern kernel_main
-	call kernel_main
-
+	call get_virt(kernel_main)
+	
 	; If the system has nothing more to do, put the computer into an
 	; infinite loop. To do that:
 	; 1) Disable interrupts with cli (clear interrupt enable in eflags).

@@ -1,6 +1,6 @@
 #pragma once
+#include <stdint.h>
 
-#include "../std.h"
 
 #define MSR_EFER 0xC0000080
 #define MSR_XSS  0x0DA0

@@ -1,9 +1,10 @@
 #include "cpuid.h"
-#include "../console.h"
-#include "../memory.h"
-#include "../os.h"
-
 #include "cr.h"
+
+#include <console.h>
+#include <memory.h>
+#include <os.h>
+
 
 static bool cpuid_available(void) {
     bool result;
@@ -56,27 +57,27 @@ bool cpu_has_ext_feature(uint64_t feature) {
     return (os.cpuid.ext_features[feature / 32] & (feature % 32)) == (feature % 32);
 }
 
-void cpu_init(void) {
+void cpu_init(struct CPUID* id) {
     if(!cpuid_available()) {
         panic("Error, CPUID unavailable, cannot run OS.");
     }
 
     Registers vendor = cpuid(0);
-    os.cpuid.max_cpuid = vendor.eax;
-    *(unsigned int*)(os.cpuid.cpu_brand_string) = vendor.ebx;
-    *(unsigned int*)(os.cpuid.cpu_brand_string + 4) = vendor.edx;
-    *(unsigned int*)(os.cpuid.cpu_brand_string + 8) = vendor.ecx;
+    id->max_cpuid = vendor.eax;
+    *(unsigned int*)(id->cpu_brand_string) = vendor.ebx;
+    *(unsigned int*)(id->cpu_brand_string + 4) = vendor.edx;
+    *(unsigned int*)(id->cpu_brand_string + 8) = vendor.ecx;
     
     Registers features = cpuid(1);
-    os.cpuid.cpu_signature = features.eax;
+    id->cpu_signature = features.eax;
     
-    os.cpuid.brand_index = features.ebx & 0xFF;
-    os.cpuid.clflush_line_size = (features.ebx >> 8) & 0xFF;
-    os.cpuid.logical_cpu_count = (features.ebx >> 16) & 0xFF;
-    os.cpuid.local_apic_id = (features.ebx >> 24) & 0xFF;
+    id->brand_index = features.ebx & 0xFF;
+    id->clflush_line_size = (features.ebx >> 8) & 0xFF;
+    id->logical_cpu_count = (features.ebx >> 16) & 0xFF;
+    id->local_apic_id = (features.ebx >> 24) & 0xFF;
 
-    os.cpuid.features.ecx = features.ecx;
-    os.cpuid.features.edx = features.edx;
+    id->features.ecx = features.ecx;
+    id->features.edx = features.edx;
 
     fpu_enable();
     sse_enable();
@@ -84,6 +85,6 @@ void cpu_init(void) {
     xsave_enable();
 
     avx_enable();
-    avx_512_enable();
+    // avx_512_enable(); this doesnt work for some reason
 }
 

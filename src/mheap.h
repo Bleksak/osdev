@@ -1,6 +1,7 @@
 #pragma once
 
-#include "std.h"
+#include <stdint.h>
+#include <stddef.h>
 
 __attribute__((warn_unused_result)) void* malloc(size_t size);
 __attribute__((warn_unused_result)) void* calloc(size_t count, size_t size);

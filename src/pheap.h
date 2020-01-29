@@ -1,6 +1,5 @@
 #pragma once
-
-#include "std.h"
+#include <stddef.h>
 
 #define MAX_ALLOC_COUNT 1048576
 #define MAX_SUPERPAGE 32

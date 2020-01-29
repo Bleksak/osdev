@@ -1,9 +1,7 @@
 #include "pci.h"
-#include "../io.h"
-
-#include "../console.h"
-
-#include "../os.h"
+#include <io.h>
+#include <console.h>
+#include <os.h>
 
 enum PCI_PORTS {
     PCI_PORT_ADDRESS_SET = 0xCF8,

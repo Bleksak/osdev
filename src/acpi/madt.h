@@ -1,5 +1,4 @@
 #pragma once
-#include "../std.h"
 #include "acpi.h"
 
 
@@ -14,7 +13,7 @@ enum MADT_Entries {
 struct LAPICEntry { // Entry type 0 
     uint8_t acpi_id;
     uint8_t apic_id;
-    uint32_t flags;
+    uint32_t flags; //  (bit 0 = Processor Enabled) (bit 1 = Online Capable)
 } __attribute__((packed));
 
 struct IOAPICEntry { // Entry type 1

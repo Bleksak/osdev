@@ -1,8 +1,6 @@
 #include "interrupt.h"
 #include "console.h"
 
-#include "isr.h"
-
 #include "pit.h"
 #include "console.h"
 
@@ -450,7 +448,6 @@ void exception_handler(const struct ExceptionRegisters* registers) {
 }
 
 void idt_install(void) {
-
     interrupt_set_base(0,  (uintptr_t) isr0);
     interrupt_set_base(1,  (uintptr_t) isr1);
     interrupt_set_base(2,  (uintptr_t) isr2);
@@ -483,8 +480,6 @@ void idt_install(void) {
     interrupt_set_base(29, (uintptr_t) isr29);
     interrupt_set_base(30, (uintptr_t) isr30);
     interrupt_set_base(31, (uintptr_t) isr31);
-
-    irq_install();
 
     const IDT idtr = {
         .idt_ptr = IDT_EXTRACT_PTR(idt),

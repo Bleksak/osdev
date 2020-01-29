@@ -1,4 +1,4 @@
-#include "string.h"
+#include "str.h"
 
 size_t strlen(const char* str) {
     size_t i = 0;
@@ -17,7 +17,15 @@ int strncmp(const char* str1, const char* str2, size_t len) {
     return sum;
 }
 
+bool str_cmp(const char* str1, const char* str2) {
+    for(size_t i = 0; str1[i] && str2[i]; ++i) {
+        if(str1[i] != str2[i]) {
+            return false;
+        }
+    }
 
+    return true;
+}
 
 void strrev(char* str) {
     for(size_t i = 0, j = strlen(str) - 1; i < j; ++i, --j) {

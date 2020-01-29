@@ -1,0 +1,5 @@
+/home/bleksak/dev/osdev/build/CMakeFiles/edit_cache.dir
+/home/bleksak/dev/osdev/build/CMakeFiles/rebuild_cache.dir
+/home/bleksak/dev/osdev/build/CMakeFiles/kernel.elf.dir
+/home/bleksak/dev/osdev/build/CMakeFiles/grub.dir
+/home/bleksak/dev/osdev/build/CMakeFiles/run.dir

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../std.h"
+#include <stdint.h>
 
 // there are 256 buses
 // there are 32 devices on each bus

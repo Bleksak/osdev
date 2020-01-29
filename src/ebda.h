@@ -1,6 +1,6 @@
 #pragma once
 #include "bda.h"
-#include "std.h"
+#include <stdint.h>
 
 struct ExtendedBiosDataArea
 {

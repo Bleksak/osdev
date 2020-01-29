@@ -3,8 +3,6 @@
 #include "align.h"
 #include "memory.h"
 
-#include "std.h"
-
 typedef struct alloc {
 	struct alloc* next;
 	struct alloc* prev;
@@ -92,8 +90,7 @@ static void* alloc(alloc_t* block, size_t size) {
 	return (void*)(block + 1);
 }
 
-void* malloc(size_t size)
-{
+void* malloc(size_t size) {
 	if(!size)
 		return 0;
 	
@@ -101,10 +98,8 @@ void* malloc(size_t size)
 	
 	alloc_t* current_block = free_allocs;
 
-	while(current_block)
-	{
-		if(current_block->size >= size)
-		{
+	while(current_block) {
+		if(current_block->size >= size) {
 			return alloc(current_block, size);
 		}
 
@@ -120,8 +115,10 @@ void* malloc(size_t size)
 
 	alloc_t* new_block = palloc(pages_needed);
 
-	if(!new_block)
+	if(!new_block) {
 		return 0;
+
+	}
 	
 	new_block->next = 0;
 	new_block->prev = 0;
@@ -132,8 +129,7 @@ void* malloc(size_t size)
 	return alloc(new_block, size);
 }
 
-void free(void* address)
-{
+void free(void* address) {
 	if(!address) {
 		return;
 	}
@@ -156,8 +152,7 @@ void free(void* address)
 
 	size_t merge_size = 0;
 
-	do
-	{
+	do {
 		merge_size += current->size;
 		if(current->next)
 			current->next->prev = current->prev;
@@ -170,12 +165,10 @@ void free(void* address)
 
 	alloc_t* start = block;
 
-	if(block->prev_phys && block->prev_phys->free)
-	{
+	if(block->prev_phys && block->prev_phys->free) {
 		start = block->prev_phys;
 
-		while(true)
-		{
+		while(true) {
 			merge_size += start->size;
 
 			if(!start->prev_phys || !start->prev_phys->free)
@@ -190,15 +183,12 @@ void free(void* address)
 
 	size_t start_merge_size = merge_size;
 
-	if(merge_size >= 4096)
-	{
-		if(difference)
-		{
+	if(merge_size >= 4096) {
+		if(difference) {
 			merge_size -= difference;
 			start = (alloc_t*)aligned;
 
-			if(merge_size < 4096)
-			{
+			if(merge_size < 4096) {
 				merge_size = start_merge_size;
 				goto free_fail;
 			}
@@ -220,8 +210,7 @@ void free(void* address)
 		stop merging, put one merged block into free_allocs
 	*/
 	
-	if(!merge_size)
-	{
+	if(!merge_size) {
 		/*
 			merge size is 0, means all pages were deallocated and we need to pop the block out
 		*/
@@ -246,8 +235,7 @@ void free(void* address)
 	free_allocs = start;
 }
 
-static void shrink_to_fit(alloc_t* block, size_t size)
-{
+static void shrink_to_fit(alloc_t* block, size_t size) {
 	alloc_t* new = (alloc_t*)((uintptr_t) block + size);
 	new->size = block->size - size;
 	new->free = false;

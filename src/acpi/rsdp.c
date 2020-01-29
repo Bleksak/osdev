@@ -1,7 +1,7 @@
 #include "acpi.h"
 #include "rsdp.h"
-#include "../ebda.h"
-#include "../paging.h"
+#include <ebda.h>
+#include <paging.h>
 
 #define RSD_PTR_ 0x2052545020445352
 

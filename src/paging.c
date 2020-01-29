@@ -12,7 +12,12 @@
 	EBDA will follow at VIRTUAL_MEMORY_START + 0x1000
 */
 
-uint32_t page_table[1024][1024] __attribute__((aligned(4096))) = {0};
+struct mapping_area {
+	size_t length;
+	void* addr;
+};
+
+uint32_t page_table[1024][1024] __attribute__((aligned(4096))) = {{0}};
 uint32_t page_directory[1024] __attribute__((aligned(4096))) = {0};
 
 
@@ -176,13 +181,13 @@ void unmap_page(uintptr_t address) {
 	flush_tlb();
 }
 
-void* map_size(uintptr_t physical, size_t size, uint32_t flags) {
+const void* map_size(uintptr_t physical, size_t size, uint32_t flags) {
 	const size_t aligned_size = align(size, 0x1000);
 
 	const size_t phys_addr = physical & ~0xFFF;
 	const uintptr_t end = phys_addr + aligned_size;
 
-	void* return_address = (void*) virtual_memory_offset;
+	const void* return_address = (const void*) virtual_memory_offset;
 
 	for(uintptr_t addr = phys_addr; addr < end; addr += 0x1000, virtual_memory_offset += 0x1000) {
 		map_page(addr, virtual_memory_offset, flags);

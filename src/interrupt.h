@@ -1,12 +1,9 @@
 #pragma once
-
-#include "std.h"
+#include <stdint.h>
 
 struct InterruptFrame {
     uint32_t ip, cs, flags, sp, ss;
 } __attribute__((packed));
-
-
 
 struct IDTEntry {
     uint16_t base_low;
@@ -22,7 +19,7 @@ struct IDT {
 } __attribute__((packed));
 
 
-#define IDT_EXTRACT_PTR(entry) (uintptr_t)&entry
+#define IDT_EXTRACT_PTR(entry) (uintptr_t)&(entry)
 
 typedef struct IDT IDT;
 typedef struct IDTEntry IDTEntry;
@@ -38,3 +35,22 @@ struct ISRRegisters {
 
 void interrupt_set_base(uint32_t index, uintptr_t base);
 void interrupt_set_gate(uint32_t index, uintptr_t base, uint16_t selector, uint8_t flags);
+
+#ifdef __clang__
+    #define INTERRUPT_HANDLER(handle, fn) __attribute__((interrupt)) void handle(struct ISRRegisters* regs) {\
+        fn\
+    }
+#else
+    #define INTERRUPT_HANDLER(handle, fn)\
+    __attribute__((naked)) void handle(struct ISRRegisters* regs);\
+    __attribute__((unused)) static void gcc_##handle(struct ISRRegisters* regs) {fn}\
+    __attribute__((naked)) void handle(struct ISRRegisters* regs) {\
+            __asm__ volatile("cli");\
+            __asm__ volatile("pusha");\
+            __asm__ volatile("push %0" :: "r"(regs));\
+            __asm__ volatile("call gcc_"#handle);\
+            __asm__ volatile("add $4, %esp");\
+            __asm__ volatile("popa");\
+            __asm__ volatile("iretl");\
+    }
+#endif

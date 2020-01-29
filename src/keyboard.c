@@ -1,10 +1,12 @@
 #include "keyboard.h"
-#include "isr.h"
 #include "console.h"
 #include "gfx/vga.h"
 
-#include "smp/ioapic.h"
-#include "smp/apic.h"
+#include <io.h>
+#include <os.h>
+#include <interrupt.h>
+#include "interrupt/ioapic.h"
+#include "interrupt/apic.h"
 
 typedef void(*keyboard_func_handler)(unsigned char scancode, bool make);
 
@@ -238,29 +240,7 @@ static bool key_is_make(unsigned char scancode) {
 	return !((scancode & KEY_RELEASE) >> 7);
 }
 
-
-#ifdef __clang__
-	__attribute__((interrupt))
-#else
-	__attribute__((unused)) static void gcc_keyboard_handler(struct ISRRegisters* regs);
-	__attribute__((naked))
-#endif
-
-static void keyboard_handle(struct ISRRegisters* regs) {
-	__asm__ volatile("cli");
-	#ifndef __clang__
-		__asm__ volatile("pusha");
-		__asm__ volatile("push %0" :: "r"(regs));
-		__asm__ volatile("call gcc_keyboard_handler");
-		__asm__ volatile("add $4, %esp");
-		__asm__ volatile("popa");
-		__asm__ volatile("iretl");
-	}
-
-	static void gcc_keyboard_handler(struct ISRRegisters* regs) {
-	
-	#endif
-
+INTERRUPT_HANDLER(keyboard_handle, {
 	(void) regs;
 	unsigned char scancode = inw(0x60);
 	unsigned char purecode = scancode & ~KEY_RELEASE;
@@ -269,7 +249,7 @@ static void keyboard_handle(struct ISRRegisters* regs) {
 	
 	if(scancode == KEY_EXT) {
 		ext = true;
-		lapic_eoi();
+		os.interrupt.dispatcher->eoi(1);
 		return;
 	}
 
@@ -279,26 +259,28 @@ static void keyboard_handle(struct ISRRegisters* regs) {
 		}
 
 		ext = false;
-		lapic_eoi();
+		os.interrupt.dispatcher->eoi(1);
 		return;
 	}
 
 	if(us_keymap[purecode].type == KEY_FUNCTION) {
 		us_keymap[purecode].handler(scancode, make);
-		lapic_eoi();
+		os.interrupt.dispatcher->eoi(1);
 		return;
 	}
 
 	keyboard_handle_default(scancode, make);
-	lapic_eoi();
-}
+	os.interrupt.dispatcher->eoi(1);
+})
+
 
 void keyboard_install(void) {
-	ioapic_enable_irq(0, 1, 0x30, IOAPIC_TRIGGER_EDGE, IOAPIC_PIN_HIGH);
-	interrupt_set_gate(0x30, (uintptr_t) keyboard_handle, 0x08, 0x8E);
+	// ioapic_enable_irq(0, 1, 0x30, IOAPIC_TRIGGER_EDGE, IOAPIC_PIN_HIGH);
+	interrupt_set_gate(33, (uintptr_t) keyboard_handle, 0x08, 0x8E);
+	os.interrupt.dispatcher->unmask(1);
 	(void) inb(0x60);
-	// (void) inb(0x60);
-	// (void) inb(0x60);
-	// (void) inb(0x60);
-	// (void) inb(0x60);
+	(void) inb(0x60);
+	(void) inb(0x60);
+	(void) inb(0x60);
+	(void) inb(0x60);
 }

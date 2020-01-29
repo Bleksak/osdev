@@ -1,6 +1,8 @@
 #pragma once
-#include "../std.h"
-#include "../result.h"
+#include <stdint.h>
+#include <stddef.h>
+
+#include <result.h>
 
 struct Drive;
 typedef struct Drive Drive;

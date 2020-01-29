@@ -1,31 +1,31 @@
 #include "io.h"
 
-void outb(unsigned short port, unsigned char value) {
+void outb(uint16_t port, uint8_t value) {
     __asm__ volatile( "outb %b0, %1" : :"a"(value), "Nd"(port) );
 }
 
-void outw(unsigned short port, unsigned short value) {
+void outw(uint16_t port, uint16_t value) {
     __asm__ volatile( "outw %w0, %1" : :"a"(value), "Nd"(port) );
 }
 
-void outl(unsigned short port, unsigned int value) {
+void outl(uint16_t port, uint32_t value) {
     __asm__ volatile( "outl %0, %1" : :"a"(value), "Nd"(port) );
 }
 
-unsigned char inb(unsigned short port) {
-    unsigned char res;
+uint8_t inb(uint16_t port) {
+    uint8_t res;
     __asm__ volatile( "inb %1, %b0 ": "=a"(res) : "Nd"(port) );
     return res;
 }
 
-unsigned short inw(unsigned short port) {
-    unsigned short res;
+uint16_t inw(uint16_t port) {
+    uint16_t res;
     __asm__ volatile( "inw %1, %w0" : "=a"(res) : "Nd"(port) );
     return res;
 }
 
-unsigned int inl(unsigned short port) {
-    unsigned int res;
+uint32_t inl(uint16_t port) {
+    uint32_t res;
     __asm__ volatile( "inl %1, %0" : "=a"(res) : "Nd"(port) );
     return res;
 }

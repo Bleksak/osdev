@@ -1,10 +1,10 @@
 #include "console.h"
-#include "string.h"
-#include "std.h"
+#include "str.h"
+#include <stdarg.h>
 
 #include "gfx/vga.h"
 
-static volatile short* vga_buffer = (volatile short*) 0xB8000;
+volatile short* vga_buffer = (volatile short*) 0xB8000;
 
 static uint32_t current_x = 0;
 static uint32_t current_y = 0;

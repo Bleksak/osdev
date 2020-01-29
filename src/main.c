@@ -10,10 +10,8 @@
 #include "memory.h"
 #include "acpi/acpi.h"
 #include "smp/apic.h"
-#include "smp/ioapic.h"
 #include "multiboot.h"
 
-#include "isr.h"
 #include "mheap.h"
 #include "pheap.h"
 
@@ -49,27 +47,27 @@ Userspace
 __attribute__((noreturn)) void kernel_main(multiboot_info_t* mbd) {
     gdt_install();
     idt_install();
-    
-    __asm__ volatile("sti");
 
-    memset_classic(&os, 0, sizeof(struct OS));
-
-	cpu_init();
+    // paging_init(mbd->mmap_addr, mbd->mmap_length);
+    os_init();
+    os.interrupt.dispatcher->install();
+    // keyboard_install();
     
-    paging_init(mbd->mmap_addr, mbd->mmap_length);
+    // vga_init();
 
-    bda_init();
+    // bda_init();
     
+    // acpi_init();
+
     // pci_init();
 
-    if(acpi_init()) {
-        lapic_enable();
-        ioapic_setup();
+    // lapic_enable();
+    // ioapic_setup();
 
-        // ioapic_override_fix();
+    // ioapic_override_fix();
 
-        keyboard_install();
-    }
+    // keyboard_install();
+
 
     // __asm__ volatile("div %1" :: "a"(k), "d"(0), "r"(0));
 
@@ -84,22 +82,18 @@ __attribute__((noreturn)) void kernel_main(multiboot_info_t* mbd) {
 
     // Result read = ata_read(&os.drives[1], 0, 1);
 
-
     // if(!read.ok)
     // {
     //     printf("NOK %s\n", read.result);
     // }
     
-    
-
     // unsigned short* res = read.result;
     
     // printf("%x\n", res[255]);
 
     //partition_init();
-    
-    for(;;)
-    {
+
+    for(;;) {
         __asm__ volatile("hlt");
     }
 }

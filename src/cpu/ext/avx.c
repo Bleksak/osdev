@@ -1,9 +1,9 @@
 #include "avx.h"
+#include <stdint.h>
+
 #include "../cr.h"
 #include "../cpuid.h"
 #include "../../console.h"
-
-#include "../../std.h"
 
 void avx_enable(void) {
     printf("Enabling AVX: ");

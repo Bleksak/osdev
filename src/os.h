@@ -5,17 +5,16 @@
 #include "smp/apic.h"
 #include "pci/pci.h"
 #include "cpu/cpuid.h"
+#include "interrupt/interrupt.h"
 
 struct OS {
     Drive* drives;
     struct APIC apic;
     struct CPUID cpuid;
+    struct Interrupts interrupt;
     struct PCI pci[256*32];
-
-    uint32_t irq_vectors[256];
-
 };
 
-typedef struct OS OS;
+extern struct OS os;
 
-extern OS os;
+void os_init(void);

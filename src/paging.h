@@ -1,7 +1,9 @@
 #pragma once
-#include "std.h"
+#include <stdint.h>
+#include <stddef.h>
 
 #include "multiboot.h"
+
 
 #define VIRTUAL_MEMORY_START 0x01000000
 #define PUBLIC_VIRTUAL_MEMORY_START VIRTUAL_MEMORY_START + 0x4000000 // 64MiB reserved for OS
@@ -34,6 +36,6 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len);
 ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);
 void unmap_page(uintptr_t address);
 
-void* map_size(uintptr_t physical, size_t size, uint32_t flags);
+const void* map_size(uintptr_t physical, size_t size, uint32_t flags);
 uintptr_t get_physical_address(uintptr_t virtual);
 uintptr_t readCR3(void);

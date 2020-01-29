@@ -1,23 +1,24 @@
 cmake_minimum_required(VERSION 2.8)
 project(kernel)
 
-# link_libraries(-nostdlib "-T ${PROJECT_SOURCE_DIR}/linker.ld" -lgcc)
+# link_libraries("-T ${PROJECT_SOURCE_DIR}/linker.ld" -lgcc)
 
 set(CMAKE_ASM_NASM_LINK_EXECUTABLE "i686-elf-gcc <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
 enable_language(ASM_NASM)
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wall -Wextra -ffreestanding -nostdlib -nostdinc -ansi -std=c17 --target=i686-pc-none-elf -march=i686")
-    set(CMAKE_C_LINK_FLAGS "-nostdlib -T${PROJECT_SOURCE_DIR}/linker.ld -flto --target=i686-pc-none-elf -lgcc")
-    set(CMAKE_C_LINK_EXECUTABLE "clang <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
+    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wall -Wextra -ffreestanding -ansi -std=c17 --target=i686-pc-none-elf -march=i686")
+    # set(CMAKE_C_LINK_FLAGS "-T${PROJECT_SOURCE_DIR}/linker.ld -flto --target=i686-pc-none-elf")
+    # set(CMAKE_C_LINK_EXECUTABLE "clang <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
+    set(CMAKE_C_LINK_FLAGS "-nostdlib -lgcc -T ${PROJECT_SOURCE_DIR}/linker.ld")
 else()
-    set(CMAKE_C_LINK_FLAGS "-nostdlib -T ${PROJECT_SOURCE_DIR}/linker.ld -lgcc")
+    set(CMAKE_C_LINK_FLAGS "-nostdlib -lgcc -T ${PROJECT_SOURCE_DIR}/linker.ld")
     set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_COMPILER} <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
-    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
+    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -march=i686")
 endif()
 
 
-# set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -nostdlib -nostdinc -march=i686")
+# set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -march=i686")
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir/boot)
@@ -82,12 +83,16 @@ add_executable(kernel.elf
     src/acpi/madt.h
     src/acpi/rsdp.c
     src/acpi/rsdp.h
-    src/smp/apic.asm
-    src/smp/apic.c
-    src/smp/apic.h
-    src/smp/ioapic.c
-    src/smp/ioapic.h
 
+    src/interrupt/8259.h
+    src/interrupt/8259.c
+    src/interrupt/apic.h
+    src/interrupt/apic.c
+    src/interrupt/ioapic.h
+    src/interrupt/ioapic.c
+    src/interrupt/interrupt.h
+    src/interrupt/interrupt.c
+    
     src/cpu/ext/avx.c
     src/cpu/ext/avx.h
     src/cpu/ext/fpu.asm
@@ -138,8 +143,6 @@ add_executable(kernel.elf
     src/interrupt.h
     src/irq.asm
     src/isr.asm
-    src/isr.c
-    src/isr.h
     src/keyboard.c
     src/keyboard.h
     src/main.c
@@ -157,12 +160,15 @@ add_executable(kernel.elf
     src/pit.c
     src/pit.h
     src/result.h
-    src/string.h
-    src/string.c
-    src/std.h
+    src/str.h
+    src/str.c
+    src/vector.h
     src/os.h
     src/os.c
 )
+
+target_include_directories(kernel.elf PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(kernel.elf PRIVATE SYSTEM ${CMAKE_SOURCE_DIR}/src)
 
 add_custom_command(TARGET kernel.elf
                    POST_BUILD

@@ -1,5 +1,6 @@
 #pragma once
-#include "../std.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 // Different pin polarities
 #define IOAPIC_PIN_HIGH 0

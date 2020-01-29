@@ -1,6 +1,5 @@
 #pragma once
-
-#include "std.h"
+#include <stdint.h>
 
 enum CONSOLE_COLORS
 {

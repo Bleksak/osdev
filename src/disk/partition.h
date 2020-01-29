@@ -4,7 +4,8 @@ struct Partition;
 typedef struct Partition Partition;
 
 #include "ata.h"
-#include "../std.h"
+#include <stdint.h>
+#include <stddef.h>
 
 struct Partition {
     unsigned char id;

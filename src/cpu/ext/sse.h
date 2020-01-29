@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../../std.h"
-
+#include <stdint.h>
 
 struct FxsaveBuffer {
     uint16_t fcw; // FPU control word

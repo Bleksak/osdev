@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../std.h"
+#include <stdint.h>
 
 struct _RsdpV1 {
     char signature[8];

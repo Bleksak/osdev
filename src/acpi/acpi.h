@@ -1,5 +1,7 @@
 #pragma once
-#include "../std.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 struct SDT {
     char signature[4];

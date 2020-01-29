@@ -119,7 +119,8 @@
 #define CPUID_EXT_FEAT_RDPID 81
 #define CPUID_EXT_FEAT_SGX_LC 89
 
-#include "../std.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "ext/fpu.h"
 #include "ext/sse.h"
@@ -144,7 +145,7 @@ struct CPUID {
     char cpu_brand_string_ext[48];
 } __attribute__((packed));
 
-void cpu_init(void);
+void cpu_init(struct CPUID* id);
 
 bool cpu_has_edx_feature(uint32_t feature);
 bool cpu_has_ecx_feature(uint32_t feature);

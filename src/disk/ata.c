@@ -1,10 +1,10 @@
 #include "ata.h"
-#include "../io.h"
-#include "../console.h"
-#include "../memory.h"
-#include "../mheap.h"
-#include "../os.h"
-#include "../paging.h"
+#include <io.h>
+#include <console.h>
+#include <memory.h>
+#include <mheap.h>
+#include <os.h>
+#include <paging.h>
 
 #define ATA_PRIMARY_IO_BASE 0x1f0
 #define ATA_PRIMARY_IO_CONTROL_BASE 0x3f6
@@ -341,7 +341,7 @@ static bool ata_write_high(const Drive* drive, unsigned long long lba, unsigned 
 	return ata_actual_write(drive, count, buffer);
 }
 
-Result ata_read(const Drive* drive, unsigned long long lba, unsigned short count) {
+Result ata_read(const Drive* drive, uint64_t lba, uint16_t count) {
 	// @TODO: http://ata.wiki.kernel.org/index.php/ATA_4KiB_sector_issues
 	// Add logical/physical sector offsetting
 
@@ -369,7 +369,7 @@ Result ata_read(const Drive* drive, unsigned long long lba, unsigned short count
 	return ata_read_high(drive, lba_start, actual_count);
 }
 
-Result ata_write(const Drive* drive, unsigned long long lba, unsigned short count, const unsigned short* buffer) {
+Result ata_write(const Drive* drive, uint64_t lba, uint16_t count, const uint16_t* buffer) {
 	if(drive->type == ATA_UNKNOWN) {
 		return Err("Trying to read from a non existant drive");
 	}

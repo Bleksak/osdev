@@ -1,14 +1,12 @@
 #include "acpi.h"
 #include "rsdp.h"
-#include "../paging.h"
-
 #include "madt.h"
 
-#include "../bound.h"
-
-#include "../memory.h"
-#include "../mheap.h"
-#include "../os.h"
+#include <bound.h>
+#include <paging.h>
+#include <memory.h>
+#include <mheap.h>
+#include <os.h>
 
 
 enum SDT_HeaderEnum {
@@ -72,8 +70,6 @@ struct AcpiSDT {
     SDT header;
     uintptr_t next_sdt[];
 } __attribute__((packed));
-
-#include "../console.h"
 
 inline bool do_checksum(const uint8_t* ptr, size_t len) {
     uint8_t checksum = 0;

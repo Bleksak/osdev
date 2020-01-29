@@ -1,5 +1,7 @@
 #pragma once
-#include "../std.h"
+#include <stdint.h>
+
+#include <vector.h>
 
 #ifndef bit_MSR
 #define bit_MSR 0x00000020
@@ -22,7 +24,7 @@ Vector(InterruptOverride, InterruptOverrideEntry);
 Vector(NMI, NMIEntry);
 
 struct APIC {
-    uintptr_t lapic_addr;
+    uintptr_t lapic_base;
     uint32_t flags;
 
     LAPIC lapic;

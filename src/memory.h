@@ -1,6 +1,9 @@
 #pragma once
 
-#include "std.h"
+#include <stdint.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 
 void memset(void* restrict dest, int ch, size_t len);

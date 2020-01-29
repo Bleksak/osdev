@@ -1,6 +1,6 @@
 #include "cr.h"
 
-#include "../assert.h"
+#include <assert.h>
 
 static uint32_t cr0_read(void) {
     uint32_t eax;

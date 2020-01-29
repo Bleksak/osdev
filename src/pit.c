@@ -1,6 +1,5 @@
 #include "pit.h"
 #include "io.h"
-#include "isr.h"
 #include "console.h"
 
 void timer_phase(int hz) {

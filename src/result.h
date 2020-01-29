@@ -1,5 +1,5 @@
 #pragma once
-#include "std.h"
+#include <stdbool.h>
 
 #define Result(p, t) (Result) {.ok = p, .result = (any_t)t}
 #define Ok(ptr) Result(true, ptr)

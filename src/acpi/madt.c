@@ -1,13 +1,13 @@
 #include "madt.h"
 #include "acpi.h"
-#include "../smp/apic.h"
-#include "../smp/ioapic.h"
+#include <interrupt/apic.h>
+#include <interrupt/ioapic.h>
 
-#include "../paging.h"
-#include "../console.h"
-#include "../memory.h"
-#include "../mheap.h"
-#include "../os.h"
+#include <paging.h>
+#include <console.h>
+#include <memory.h>
+#include <mheap.h>
+#include <os.h>
 
 void madt_parse(const SDT* header) {
     const MADT* madt = (void*) header;
@@ -42,4 +42,7 @@ void madt_parse(const SDT* header) {
 
         current_entry = (MADTEntry*)((uintptr_t)current_entry + current_entry->length);
     }
+
+    
+
 }

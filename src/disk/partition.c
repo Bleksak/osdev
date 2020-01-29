@@ -1,12 +1,10 @@
 #include "partition.h"
-#include "../console.h"
-#include "../memory.h"
-#include "../mheap.h"
-#include "../os.h"
-#include "../paging.h"
+#include <console.h>
+#include <memory.h>
+#include <mheap.h>
+#include <os.h>
+#include <paging.h>
 
-
-extern OS os;
 
 #define MBR_OFFSET 446
 
