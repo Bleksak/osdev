@@ -11,8 +11,8 @@ enum INTERRUPT_DISPATCHER {
 typedef void (*int_fn_install)();
 typedef void (*int_fn_enable)();
 typedef void (*int_fn_disable)();
-typedef void (*int_fn_mask)(uint8_t irq);
-typedef void (*int_fn_unmask)(uint8_t irq);
+typedef void (*int_fn_mask)(uint32_t bus, uint32_t irq);
+typedef void (*int_fn_unmask)(uint32_t bus, uint32_t irq, uint8_t vector, bool trigger_mode, bool polarity);
 typedef void (*int_fn_eoi)(uint8_t irq);
 
 struct InterruptDispatcher {
