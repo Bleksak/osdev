@@ -249,7 +249,7 @@ INTERRUPT_HANDLER(keyboard_handle, {
 	
 	if(scancode == KEY_EXT) {
 		ext = true;
-		os.interrupt.dispatcher->eoi(1);
+		os.interrupt.dispatcher->eoi(KEYBOARD_IRQ);
 		return;
 	}
 
@@ -259,28 +259,23 @@ INTERRUPT_HANDLER(keyboard_handle, {
 		}
 
 		ext = false;
-		os.interrupt.dispatcher->eoi(1);
+		os.interrupt.dispatcher->eoi(KEYBOARD_IRQ);
 		return;
 	}
 
 	if(us_keymap[purecode].type == KEY_FUNCTION) {
 		us_keymap[purecode].handler(scancode, make);
-		os.interrupt.dispatcher->eoi(1);
+		os.interrupt.dispatcher->eoi(KEYBOARD_IRQ);
 		return;
 	}
 
 	keyboard_handle_default(scancode, make);
-	os.interrupt.dispatcher->eoi(1);
+	os.interrupt.dispatcher->eoi(KEYBOARD_IRQ);
 })
 
-
 void keyboard_install(void) {
-	// ioapic_enable_irq(0, 1, 0x30, IOAPIC_TRIGGER_EDGE, IOAPIC_PIN_HIGH);
-	interrupt_set_gate(33, (uintptr_t) keyboard_handle, 0x08, 0x8E);
-	os.interrupt.dispatcher->unmask(1);
-	(void) inb(0x60);
-	(void) inb(0x60);
-	(void) inb(0x60);
-	(void) inb(0x60);
-	(void) inb(0x60);
+	os.interrupt.dispatcher->unmask(0, KEYBOARD_IRQ, os.interrupt.irq_vector[KEYBOARD_IRQ], IOAPIC_TRIGGER_EDGE, IOAPIC_PIN_LOW);
+	interrupt_set_gate(os.interrupt.irq_vector[KEYBOARD_IRQ], (uintptr_t) keyboard_handle, 0x08, 0x8E);
+
+	inb(0x60); // idk why but without this it won't work
 }
