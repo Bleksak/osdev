@@ -12,7 +12,7 @@ typedef struct alloc {
 	size_t size;
 } __attribute__((aligned(32))) alloc_t;
 
-size_t kernel_mem = 0;
+// size_t kernel_mem = 0;
 
 /*
 	realloc can give different location while freeing the current
@@ -20,7 +20,8 @@ size_t kernel_mem = 0;
 	if realloc is successful, return new location (or old resized)
 */
 
-alloc_t* free_allocs = 0, *used_allocs = 0;
+static alloc_t* free_allocs = 0;
+static alloc_t* used_allocs = 0;
 static size_t free_memory = 0;
 static size_t used_memory = 4096;
 
@@ -235,8 +236,10 @@ void free(void* address) {
 	free_allocs = start;
 }
 
-static void shrink_to_fit(alloc_t* block, size_t size) {
+void* shrink_to_fit(void* base, size_t size) {
+	alloc_t* block = ((alloc_t*) base - 1);
 	alloc_t* new = (alloc_t*)((uintptr_t) block + size);
+
 	new->size = block->size - size;
 	new->free = false;
 	
@@ -249,6 +252,7 @@ static void shrink_to_fit(alloc_t* block, size_t size) {
 	block->size = size;
 
 	free(new+1);
+	return base;
 }
 
 void* calloc(size_t count, size_t size) {
@@ -271,21 +275,21 @@ void* realloc(void* base, size_t size) {
 		return malloc(size);
 	}
 
-	alloc_t* block = ((alloc_t*)base - 1);
+	alloc_t* alloc = ((alloc_t*)base - 1);
 
 	const size_t new_size = align(size + sizeof(alloc_t), sizeof(alloc_t));
 
-	if(block->size == new_size) {
+	if(alloc->size == new_size) {
 		return base;
 	}
 
-	if(block->size > new_size) {
-		shrink_to_fit(block, new_size);
-		return base;
+
+	if(alloc->size > new_size) {
+		return shrink_to_fit(base, new_size);
 	}
 
-	alloc_t* next_alloc = (alloc_t*) ((uintptr_t)block + block->size);
-	const long long new_alloc_size = (block->size + next_alloc->size) - new_size;
+	alloc_t* next_alloc = (alloc_t*) ((uintptr_t)alloc + alloc->size);
+	const long long new_alloc_size = (alloc->size + next_alloc->size) - new_size;
 
 	if(next_alloc->free && new_alloc_size >= 0) {
 		if(next_alloc->next) {
@@ -297,13 +301,13 @@ void* realloc(void* base, size_t size) {
 		}
 
 		if(new_alloc_size <= (2 * sizeof(alloc_t))) {
-			block->size += new_alloc_size;
-			return (void*) (block + 1);
+			alloc->size += new_alloc_size;
+			return (void*) (alloc + 1);
 		}
 
-		block->size = new_size;
+		alloc->size = new_size;
 
-		alloc_t* new_created_malloc = (alloc_t*) ((uintptr_t)block + (uintptr_t)block->size);
+		alloc_t* new_created_malloc = (alloc_t*) ((uintptr_t)alloc + (uintptr_t)alloc->size);
 		new_created_malloc->size = new_alloc_size;
 		new_created_malloc->free = true;
 		new_created_malloc->next = free_allocs;
@@ -311,18 +315,20 @@ void* realloc(void* base, size_t size) {
 		free_allocs->prev = new_created_malloc;
 		free_allocs = new_created_malloc;
 
-		return (void*) (block + 1);
+		return (void*) (alloc + 1);
 	}
 
-	alloc_t* new_block = malloc(new_size);
-	
+	void* new_block = malloc(new_size);
+
 	if(!new_block) {
 		return 0;
 	}
 
-	memcpy(new_block, block, block->size);
+	const size_t alloc_size = alloc->size;
 
-	free(block);
+	(void) memcpy(new_block, base, alloc_size);
 
-	return (void*) (new_block + 1);
+	free(base);
+
+	return new_block;
 }
