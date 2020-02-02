@@ -38,6 +38,7 @@ void interrupt_set_gate(uint32_t index, uintptr_t base, uint16_t selector, uint8
 
 #ifdef __clang__
     #define INTERRUPT_HANDLER(handle, fn) __attribute__((interrupt)) void handle(struct ISRRegisters* regs) {\
+        __asm__ volatile("cli");\
         fn\
     }
 #else
