@@ -15,7 +15,7 @@ static size_t sse_alignment(uintptr_t address) {
     return SSE_XMM_SIZE - (address & (SSE_XMM_SIZE - 1));
 }
 
-static void memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
+static void* memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
     uintptr_t dst_addr = (uintptr_t) dest;
     uintptr_t src_addr = (uintptr_t) src;
 
@@ -38,6 +38,8 @@ static void memcpy_sse2(void* restrict dest, void* restrict src, size_t len) {
     }
 
     __asm__ volatile("rep movsb" :: "D"(dst_addr), "S"(src_addr), "c"(len - i));
+
+    return dest;
 }
 
 void memset_classic(void* restrict dest, int c, size_t len) {
@@ -86,7 +88,7 @@ void memset(void* restrict dest, int c, size_t len) {
     }
 }
 
-static void memcpy_classic(void* restrict dest, void* restrict src, size_t len) {
+static void* memcpy_classic(void* restrict dest, void* restrict src, size_t len) {
     uintptr_t dst_addr = (uintptr_t) dest;
     uintptr_t src_addr = (uintptr_t) src;
 
@@ -99,18 +101,19 @@ static void memcpy_classic(void* restrict dest, void* restrict src, size_t len) 
     if(len & 1) {
         __asm__ volatile("movsb" :: "D"(dst_addr), "S"(src_addr));
     }
+
+    return dest;
 }
 
-void memcpy(void* restrict dest, void* restrict src, size_t len) {
+void* memcpy(void* restrict dest, void* restrict src, size_t len) {
     if(!len)
-        return;
+        return 0;
 
     if(cpu_has_edx_feature(CPUID_FEAT_EDX_SSE)) {
-        memcpy_sse2(dest, src, len);
-        return;
+        return memcpy_sse2(dest, src, len);
     }
 
-    memcpy_classic(dest, src, len);
+    return memcpy_classic(dest, src, len);
 }
 
 bool memcmp(void* restrict dest, void* restrict src, size_t len) {
