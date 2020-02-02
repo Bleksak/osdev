@@ -5,9 +5,9 @@
 #include "multiboot.h"
 
 
-#define VIRTUAL_MEMORY_START 0x01000000
-#define PUBLIC_VIRTUAL_MEMORY_START VIRTUAL_MEMORY_START + 0x4000000 // 64MiB reserved for OS
-#define MEM_ZERO_MAP VIRTUAL_MEMORY_START
+// #define VIRTUAL_MEMORY_START 0x01000000
+// #define PUBLIC_VIRTUAL_MEMORY_START VIRTUAL_MEMORY_START + 0x4000000 // 64MiB reserved for OS
+// #define MEM_ZERO_MAP VIRTUAL_MEMORY_START
 
 #define MAP_SIZE(phys, size, flags) (void*) ((uintptr_t)map_size((phys), (size), (flags)) + ((phys) & 0xFFF));
 
@@ -35,6 +35,9 @@ void mem_offset_set(uintptr_t address);
 void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len);
 ptrdiff_t map_page(uintptr_t physical, uintptr_t virtual, uint32_t flags);
 void unmap_page(uintptr_t address);
+
+void page_set_flags(size_t page, uint32_t flags);
+void page_unset_flags(size_t page, uint32_t flags);
 
 const void* map_size(uintptr_t physical, size_t size, uint32_t flags);
 uintptr_t get_physical_address(uintptr_t virtual);

@@ -12,10 +12,6 @@
 	EBDA will follow at VIRTUAL_MEMORY_START + 0x1000
 */
 
-struct mapping_area {
-	size_t length;
-	void* addr;
-};
 
 uint32_t page_table[1024][1024] __attribute__((aligned(4096))) = {{0}};
 uint32_t page_directory[1024] __attribute__((aligned(4096))) = {0};
@@ -28,22 +24,12 @@ extern size_t page_bitmap[32768];
 extern size_t superpage_bitmap[32];
 
 enum MMAP_TYPE {
+	MMAP_UNDEFINED,
 	MMAP_FREE,
 	MMAP_RESERVED,
 	MMAP_ACPI_RECL,
 	MMAP_ACPI_NVS,
 	MMAP_COUNT,
-};
-
-static multiboot_memory_map_t maps[4][8] = {
-	{{0}}, 
-	{{0}}, 
-	{{0}}, 
-	{{0}}
-};
-
-static size_t counters[4] = {
-	0, 0, 0, 0
 };
 
 static void flush_tlb(void) {
@@ -56,7 +42,7 @@ static void flush_tlb(void) {
 
 extern uintptr_t _kernel_phys_start, _kernel_phys_end, _kernel_virt_start, _kernel_virt_end;
 
-static uintptr_t virtual_memory_offset = VIRTUAL_MEMORY_START;
+static uintptr_t virtual_memory_offset = 0;
 
 #define MAKE_PAIR(a, b) {(uintptr_t) a, (uintptr_t) b}
 typedef struct { uintptr_t start, end; } BoundPair;
@@ -100,23 +86,16 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 	memset(page_bitmap, 0xFF, sizeof(page_bitmap));
 	memset(superpage_bitmap, 0xFF, sizeof(superpage_bitmap));
 
-	uintptr_t virtual_address = PUBLIC_VIRTUAL_MEMORY_START;
+	virtual_memory_offset = ((uintptr_t)&_kernel_virt_end + 0x1000) & ~(0xFFF); // use higher half for kernel purposes
 
-	multiboot_memory_map_t* mmap = (void*) mmap_addr;
+	uintptr_t virtual_address = 0;
 
-	while((uintptr_t)mmap < (mmap_addr + mmap_len)) {
+	for(multiboot_memory_map_t* mmap = (void*) mmap_addr;(uintptr_t)mmap < (mmap_addr + mmap_len); mmap = (multiboot_memory_map_t*) ((uintptr_t)mmap + mmap->size + sizeof(mmap->size))) {
 		if(mmap->type == MULTIBOOT_MEMORY_BADRAM) {
-			mmap = (multiboot_memory_map_t*) ((uintptr_t)mmap + mmap->size + sizeof(mmap->size));
 			continue;
 		}
 
-		const enum MMAP_TYPE type = mmap->type - 1;
-		size_t* counter = &counters[type];
-		multiboot_memory_map_t* map = &maps[type][*counter];
-		
-		memcpy(map, mmap, sizeof(multiboot_memory_map_t));
-
-		if(type == MMAP_FREE) {
+		else if(mmap->type == MMAP_FREE) {
 			const uint64_t limit = (uint64_t)mmap->addr + (uint64_t)mmap->len;
 			
 			for(uintptr_t physical_address = mmap->addr; physical_address < limit;) {
@@ -127,42 +106,38 @@ void paging_init(multiboot_uint32_t mmap_addr, multiboot_uint32_t mmap_len) {
 				
 				// overflow check for 32 bit machines (64 bit shouldn't be able to overflow)
 				#ifdef _x86
-					if((limit > 0xFFFFFFFF) || (((uint64_t)virtual_address + 0x1000ULL) > 0xFFFFFFFFULL)) {
+					if((limit > 0xFFFFFFFFULL) || (((uint64_t)virtual_address + 0x1000ULL) > 0xFFFFFFFFULL)) {
 						printf("Memory map truncated (32 bit OS cannot access more than 4G)\n");
 						return;
 					}
 				#endif
+				
+				if(paging_check_virtual_bounds(virtual_address)) {
+					virtual_address += 0x1000;
+					continue;
+				}
 
 				if(paging_check_physical_bounds(physical_address)) {
 					physical_address += 0x1000;
 					continue;
 				}
 
-				if(paging_check_virtual_bounds(virtual_address)) {
-					virtual_address += 0x1000;
-					continue;
-				}
-			
-
 				map_page_local(physical_address, virtual_address);
 
 				const uintptr_t page = virtual_address >> 12;
-
-				page_unmark(page);
+				
+				page_bitmap[page >> 5] &= ~(1 << (page & 0x1F));
 				superpage_unmark(page);
 
 				physical_address += 0x1000;
 				virtual_address += 0x1000;
 			}
 		}
-
-		mmap = (multiboot_memory_map_t*) ((uintptr_t)mmap + mmap->size + sizeof(mmap->size));
-		(*counter)++;
 	}
 
-	// for(uintptr_t addr = 0; addr <= 0xA0000; addr+=0x1000) {
-	// 	unmap_page_local(addr);
-	// }
+	for(uintptr_t addr = 0; addr <= 0xA0000; addr+=0x1000) {
+		unmap_page(addr);
+	}
 
 	flush_tlb();
 	heap_init();
@@ -198,6 +173,14 @@ const void* map_size(uintptr_t physical, size_t size, uint32_t flags) {
 
 inline uintptr_t get_physical_address(uintptr_t virtual) {
     return (page_table[virtual >> 22][(virtual >> 12) & 0x3ff] & ~0xFFF) | (virtual & 0xfff);
+}
+
+inline void page_set_flags(size_t page, uint32_t flags) {
+	page_table[page >> 10][page & 0x3ff] |= flags;
+}
+
+inline void page_unset_flags(size_t page, uint32_t flags) {
+	page_table[page >> 10][page & 0x3ff] &= ~flags;
 }
 
 uintptr_t mem_offset_get(void) {
