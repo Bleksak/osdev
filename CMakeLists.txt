@@ -98,9 +98,15 @@ add_executable(kernel.elf
     src/disk/ata.h
     src/disk/partition.c
     src/disk/partition.h
+    src/disk/file/elf/elf.c
+    src/disk/file/elf/elf.h
 
-    src/file/elf/elf.c
-    src/file/elf/elf.h
+    src/disk/fs/fs.h
+    src/disk/fs/fs.c
+    src/disk/fs/fat16/fat16.h
+    src/disk/fs/fat16/fat16.c
+    src/disk/fs/fat32/fat32.h
+    src/disk/fs/fat32/fat32.h
 
     src/pci/pci.h
     src/pci/pci.c
