@@ -12,6 +12,9 @@ struct Partition {
     Drive* drive;
     unsigned int start;
     unsigned int size;
+
+    
+
 };
 
 size_t partition_init_drive(const Drive* drive);

@@ -211,7 +211,7 @@ size_t ata_init(void) {
 		}
 
 		os.drives = realloc(os.drives, sizeof(Drive) * (drive_count+1));
-		memcpy(&os.drives[drive_count], &drive_tmp, sizeof(Drive));
+		(void) memcpy(&os.drives[drive_count], &drive_tmp, sizeof(Drive));
 
 		if(os.drives[i].identify.Supported2.ExtendedUserAddressableSectors) {
 			if(os.drives[i].identify.SectorCountExt > 0x0000FFFFFFFFFFFF) {
