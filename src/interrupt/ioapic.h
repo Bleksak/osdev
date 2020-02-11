@@ -10,5 +10,7 @@
 #define IOAPIC_TRIGGER_EDGE  0
 #define IOAPIC_TRIGGER_LEVEL 1
 
+#define KEYBOARD_IRQ 1
+
 void ioapic_setup(void);
 void ioapic_enable_irq(uint32_t bus, uint32_t irq, uint8_t vector, bool trigger_mode, bool polarity);

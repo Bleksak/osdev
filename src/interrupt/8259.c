@@ -1,5 +1,7 @@
 #include "8259.h"
+#include "ioapic.h"
 #include <io.h>
+#include <os.h>
 
 #define PICM 0x20
 #define PICS 0xA0
@@ -40,14 +42,15 @@ static void pic_remap(uint8_t offset1, uint8_t offset2) {
 
 void pic_install(void) {
     pic_remap(0x20, 0x28);
-    pic_enable();
+    pic_disable();
+
+    os.interrupt.irq_vector[KEYBOARD_IRQ] = 32 + KEYBOARD_IRQ;
+
 }
 
 void pic_enable(void) {
     outb(PICM_DATA, 0); // unmask every irq
     outb(PICS_DATA, 0); // unmask every irq
-
-    __asm__ volatile("sti");
 }
 
 void pic_disable(void) {
@@ -63,7 +66,10 @@ void pic_eoi(uint8_t irq) {
     outb(PICM_CMD, PIC_EOI);
 }
 
-void pic_mask(uint8_t irq) {
+void pic_mask(uint32_t bus, uint32_t irq) {
+    (void) bus;
+    
+    irq -= 1;
     uint16_t port = PICM_DATA;
 
     if(irq > 8) {
@@ -77,7 +83,12 @@ void pic_mask(uint8_t irq) {
     outb(port, value);
 }
 
-void pic_unmask(uint8_t irq) {
+void pic_unmask(uint32_t bus, uint32_t irq, uint8_t vector, bool trigger_mode, bool polarity) {
+    (void) bus;
+    (void) vector;
+    (void) trigger_mode;
+    (void) polarity;
+
     uint16_t port = PICM_DATA;
 
     if(irq > 8) {

@@ -5,3 +5,4 @@
 *.ipch
 *.json
 cmake
+build

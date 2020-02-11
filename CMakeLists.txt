@@ -1,24 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
-project(kernel)
+project(kernel C)
 
-# link_libraries("-T ${PROJECT_SOURCE_DIR}/linker.ld" -lgcc)
 
-set(CMAKE_ASM_NASM_LINK_EXECUTABLE "i686-elf-gcc <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+set(CMAKE_ASM_NASM_LINK_EXECUTABLE "clang <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
 enable_language(ASM_NASM)
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wall -Wextra -ffreestanding -ansi -std=c17 --target=i686-pc-none-elf -march=i686")
-    # set(CMAKE_C_LINK_FLAGS "-T${PROJECT_SOURCE_DIR}/linker.ld -flto --target=i686-pc-none-elf")
-    # set(CMAKE_C_LINK_EXECUTABLE "clang <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
-    set(CMAKE_C_LINK_FLAGS "-nostdlib -lgcc -T ${PROJECT_SOURCE_DIR}/linker.ld")
-else()
-    set(CMAKE_C_LINK_FLAGS "-nostdlib -lgcc -T ${PROJECT_SOURCE_DIR}/linker.ld")
-    set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_COMPILER} <OBJECTS> -o <TARGET> <LINK_LIBRARIES> <CMAKE_C_LINK_FLAGS>")
-    set(CMAKE_C_FLAGS "-D _x86 -Wpedantic -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -march=i686")
-endif()
-
-
-# set(CMAKE_C_FLAGS "-D _x86 -x c -Wno-cpp -std=c17 -Wall -Wextra -ffreestanding -march=i686")
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/isodir/boot)
@@ -112,9 +98,15 @@ add_executable(kernel.elf
     src/disk/ata.h
     src/disk/partition.c
     src/disk/partition.h
+    src/disk/file/elf/elf.c
+    src/disk/file/elf/elf.h
 
-    src/file/elf/elf.c
-    src/file/elf/elf.h
+    src/disk/fs/fs.h
+    src/disk/fs/fs.c
+    src/disk/fs/fat16/fat16.h
+    src/disk/fs/fat16/fat16.c
+    src/disk/fs/fat32/fat32.h
+    src/disk/fs/fat32/fat32.h
 
     src/pci/pci.h
     src/pci/pci.c
@@ -173,3 +165,7 @@ target_include_directories(kernel.elf PRIVATE SYSTEM ${CMAKE_SOURCE_DIR}/src)
 add_custom_command(TARGET kernel.elf
                    POST_BUILD
                    COMMAND sudo make -f grub.make update)
+
+set_property(TARGET kernel.elf PROPERTY C_STANDARD 11)
+
+message(STATUS ${CMAKE_C_FLAGS})

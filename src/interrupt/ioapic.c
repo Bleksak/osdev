@@ -2,6 +2,7 @@
 #include <paging.h>
 #include <console.h>
 #include <os.h>
+#include "8259.h"
 
 // Memory offsets
 #define IOAPIC_IOREGSEL 0x00
@@ -99,15 +100,17 @@ void ioapic_enable_irq(uint32_t bus, uint32_t irq, uint8_t vector, bool trigger_
     redir.pin_polarity = polarity;
 
     ioapic_set_redirect_entry(bus, irq, redir);
-    printf("ioapic: mapping IRQ#%d to interrupt %d\n", irq, vector);
+    // printf("ioapic: mapping IRQ#%d to interrupt %d\n", irq, vector);
 }
 
 // Initialize the I/O APIC but disable everything
 void ioapic_setup(void) {
     for(size_t bus = 0; bus < os.apic.ioapic.length; ++bus) {
-        printf("ioapic #%d: ID: %d\n", bus, ioapic_get_id(bus));
-        printf("ioapic #%d: version: %x\n", bus, ioapic_get_version(bus));
-        printf("ioapic #%d: IRQ#: %d\n", bus, ioapic_get_irqs(bus));
+        os.apic.ioapic.entries[bus].ioapic_address = (uint32_t) MAP_SIZE(os.apic.ioapic.entries[bus].ioapic_address, 4096, Present | ReadWrite);
+
+        // printf("ioapic #%d: ID: %d\n", bus, ioapic_get_id(bus));
+        // printf("ioapic #%d: version: %x\n", bus, ioapic_get_version(bus));
+        // printf("ioapic #%d: IRQ#: %d\n", bus, ioapic_get_irqs(bus));
 
         // Disable all interrupts
         for ( uint32_t i = 0; i < ioapic_get_irqs(bus); i++ ) {
@@ -119,5 +122,7 @@ void ioapic_setup(void) {
         }
     }
 
-    printf("ioapic: all entries disabled.\n");
+    pic_disable();
+
+    // printf("ioapic: all entries disabled.\n");
 }

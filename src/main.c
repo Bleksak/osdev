@@ -9,7 +9,6 @@
 
 #include "memory.h"
 #include "acpi/acpi.h"
-#include "smp/apic.h"
 #include "multiboot.h"
 
 #include "mheap.h"
@@ -48,30 +47,24 @@ __attribute__((noreturn)) void kernel_main(multiboot_info_t* mbd) {
     gdt_install();
     idt_install();
 
-    // paging_init(mbd->mmap_addr, mbd->mmap_length);
+    paging_init(mbd->mmap_addr, mbd->mmap_length);
     os_init();
-    os.interrupt.dispatcher->install();
-    // keyboard_install();
-    
+
+    // for(size_t i = 0; i < os.apic.interrupt_override.length; ++i) {
+	// 	printf("Bus: %d\n", os.apic.interrupt_override.entries[i].bus_source);
+    //     printf("IRQ: %d\n", os.apic.interrupt_override.entries[i].irq_source);
+    //     printf("Global Interrupt: %d\n", os.apic.interrupt_override.entries[i].global_system_interrupt);
+	// }
+
+    keyboard_install(); // keyboard is in IOAPIC mode
+
     // vga_init();
 
     // bda_init();
     
-    // acpi_init();
-
     // pci_init();
 
-    // lapic_enable();
-    // ioapic_setup();
-
     // ioapic_override_fix();
-
-    // keyboard_install();
-
-
-    // __asm__ volatile("div %1" :: "a"(k), "d"(0), "r"(0));
-
-    // printf("%s\n", r);
 
     // printf("Paging initialized\n");
     // printf("Usable memory: %d MB\n", heap_get_free_mem() / (1024 * 1024));

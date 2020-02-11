@@ -2,6 +2,8 @@
 #include <str.h>
 #include "interrupt.h"
 #include "8259.h"
+#include "ioapic.h"
+#include "apic.h"
 
 const static struct InterruptDispatcher pic_dispatcher = {
     .name = "PIC",
@@ -17,13 +19,15 @@ const static struct InterruptDispatcher pic_dispatcher = {
 const static struct InterruptDispatcher ioapic_dispatcher = {
     .name = "IOAPIC",
     .id = DISPATCHER_IOAPIC,
+    .install = ioapic_setup,
+    .unmask = ioapic_enable_irq,
+    .eoi = lapic_eoi,
 };
 
 const static struct InterruptDispatcher* interrupt_dispatchers[] = {
     &pic_dispatcher,
     &ioapic_dispatcher,
 };
-
 
 const struct InterruptDispatcher* interrupt_find_dispatcher_id(enum INTERRUPT_DISPATCHER id) {
     for(size_t i = 0; i < sizeof(interrupt_dispatchers)/sizeof(interrupt_dispatchers[0]); ++i) {
@@ -36,14 +40,11 @@ const struct InterruptDispatcher* interrupt_find_dispatcher_id(enum INTERRUPT_DI
 }
 
 const struct InterruptDispatcher* interrupt_find_dispatcher(const char* name) {
+    for(size_t i = 0; i < sizeof(interrupt_dispatchers)/sizeof(interrupt_dispatchers[0]); ++i) {
+        if(str_cmp(name, interrupt_dispatchers[i]->name)) {
+            return interrupt_dispatchers[i];
+        }
+    }
 
-    return &pic_dispatcher;
-
-    // for(size_t i = 0; i < sizeof(interrupt_dispatchers)/sizeof(interrupt_dispatchers[0]); ++i) {
-    //     if(str_cmp(name, interrupt_dispatchers[i]->name)) {
-    //         return interrupt_dispatchers[i];
-    //     }
-    // }
-
-    // return 0;
+    return 0;
 }

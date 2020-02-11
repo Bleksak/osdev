@@ -8,6 +8,7 @@
 #include <mheap.h>
 #include <os.h>
 
+#include <console.h>
 
 enum SDT_HeaderEnum {
     SDT_MADT,
@@ -158,12 +159,16 @@ bool acpi_init(void) {
         }
 
         pointers[i] = (uintptr_t)acpi_tables + old_offset;
-        memcpy( (void*) ((uintptr_t) acpi_tables + old_offset), (void* restrict) current_header, current_header->length);
+        
+        const SDT* table = (const SDT*) memcpy( (void*) ((uintptr_t) acpi_tables + old_offset), (void* restrict) current_header, current_header->length);
 
-        if(!parse_table( (const SDT*) ((uintptr_t)acpi_tables + old_offset))) {
-            panic("Failed to parse table %s", (const SDT*) ((uintptr_t)acpi_tables + old_offset));
+        if(!parse_table(table)) {
+            panic("Failed to parse table %s", table);
         }
     }
+
+    free(pointers);
+    free(acpi_tables);
 
     return true;
 }
