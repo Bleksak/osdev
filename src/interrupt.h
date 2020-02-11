@@ -43,7 +43,7 @@ void interrupt_set_gate(uint32_t index, uintptr_t base, uint16_t selector, uint8
 #else
     #define INTERRUPT_HANDLER(handle, fn)\
     __attribute__((naked)) void handle(struct ISRRegisters* regs);\
-    __attribute__((unused)) static void gcc_##handle(struct ISRRegisters* regs) {fn}\
+    __attribute__((unused)) void gcc_##handle(struct ISRRegisters* regs) {fn}\
     __attribute__((naked)) void handle(struct ISRRegisters* regs) {\
             __asm__ volatile("cli");\
             __asm__ volatile("pusha");\
